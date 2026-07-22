@@ -7,7 +7,7 @@ an existing analysis state.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field, fields, is_dataclass
 from datetime import datetime
 from enum import Enum
 from math import isfinite
@@ -248,7 +248,7 @@ class MatchContext:
                 raise ValueError("Rejected evidence cannot produce an active decision")
 
     def to_dict(self) -> dict[str, Any]:
-        """Return a JSON-compatible dictionary."""
+        """Return a JSON-compatible dictionary without mutating domain objects."""
 
         def convert(value: Any) -> Any:
             if isinstance(value, Enum):
@@ -257,10 +257,13 @@ class MatchContext:
                 return value.isoformat()
             if isinstance(value, Mapping):
                 return {str(key): convert(item) for key, item in value.items()}
-            if isinstance(value, tuple):
+            if isinstance(value, (tuple, list)):
                 return [convert(item) for item in value]
-            if hasattr(value, "__dataclass_fields__"):
-                return {key: convert(item) for key, item in asdict(value).items()}
+            if is_dataclass(value) and not isinstance(value, type):
+                return {item.name: convert(getattr(value, item.name)) for item in fields(value)}
             return value
 
-        return convert(self)
+        result = convert(self)
+        if not isinstance(result, dict):
+            raise TypeError("MatchContext serialization did not produce an object")
+        return result
