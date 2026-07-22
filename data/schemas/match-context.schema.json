@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://prism.local/schemas/match-context.schema.json",
+  "title": "PRISM MatchContext",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "session",
+    "match",
+    "home_team",
+    "away_team",
+    "lineups",
+    "injuries",
+    "market",
+    "weather",
+    "schedule",
+    "tactical",
+    "rule_outputs",
+    "model_outputs"
+  ],
+  "properties": {
+    "schema_version": {"type": "string", "const": "1.0.0"},
+    "session": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["session_id", "created_at", "prism_version", "schema_version"],
+      "properties": {
+        "session_id": {"type": "string", "minLength": 1},
+        "created_at": {"type": "string", "format": "date-time"},
+        "prism_version": {"type": "string", "minLength": 1},
+        "schema_version": {"type": "string", "const": "1.0.0"},
+        "ai_models": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "match": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["match_id", "competition", "kickoff"],
+      "properties": {
+        "match_id": {"type": "string", "minLength": 1},
+        "competition": {"type": "string", "minLength": 1},
+        "kickoff": {"type": "string", "format": "date-time"}
+      }
+    },
+    "home_team": {"$ref": "#/$defs/team"},
+    "away_team": {"$ref": "#/$defs/team"},
+    "lineups": {"type": "object"},
+    "injuries": {"type": "object"},
+    "market": {"type": "object"},
+    "weather": {"type": "object"},
+    "schedule": {"type": "object"},
+    "tactical": {"type": "object"},
+    "evidence": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object",
+          "required": ["score", "raw_score", "gate", "category_scores", "missing_categories", "warnings", "critical_caps_applied"],
+          "properties": {
+            "score": {"type": "integer", "minimum": 0, "maximum": 100},
+            "raw_score": {"type": "number", "minimum": 0, "maximum": 100},
+            "gate": {"enum": ["deep", "standard", "limited", "rejected"]}
+          }
+        }
+      ]
+    },
+    "rule_outputs": {"type": "array", "items": {"type": "object"}},
+    "model_outputs": {"type": "array", "items": {"$ref": "#/$defs/modelOutput"}},
+    "confidence": {"type": ["object", "null"]},
+    "consensus": {"type": ["object", "null"]},
+    "decision": {"type": ["object", "null"]}
+  },
+  "$defs": {
+    "team": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["team_id", "name"],
+      "properties": {
+        "team_id": {"type": "string", "minLength": 1},
+        "name": {"type": "string", "minLength": 1},
+        "elo_rating": {"type": ["number", "null"]}
+      }
+    },
+    "modelOutput": {
+      "type": "object",
+      "required": ["model_id", "model_version", "home_probability", "draw_probability", "away_probability", "diagnostics"],
+      "properties": {
+        "model_id": {"type": "string", "minLength": 1},
+        "model_version": {"type": "string", "minLength": 1},
+        "home_probability": {"type": "number", "minimum": 0, "maximum": 1},
+        "draw_probability": {"type": "number", "minimum": 0, "maximum": 1},
+        "away_probability": {"type": "number", "minimum": 0, "maximum": 1},
+        "diagnostics": {"type": "object"}
+      }
+    }
+  }
+}
