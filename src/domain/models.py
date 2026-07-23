@@ -187,6 +187,54 @@ class ModelOutput:
 
 
 @dataclass(frozen=True)
+class ConsensusOutput:
+    model_count: int
+    model_ids: tuple[str, ...]
+    home_probability: float
+    draw_probability: float
+    away_probability: float
+    agreement: float
+    mean_pairwise_distance: float
+    max_spread: float
+    leading_outcome: str
+    margin: float
+    method: str = "equal_weight_mean"
+    rationale: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        if isinstance(self.model_count, bool) or not isinstance(self.model_count, int):
+            raise ValueError("model_count must be an integer")
+        if self.model_count < 1:
+            raise ValueError("model_count must be at least 1")
+        model_ids = tuple(_require_text(item, "model_id") for item in self.model_ids)
+        if len(model_ids) != self.model_count:
+            raise ValueError("model_count must match model_ids")
+        if len(set(model_ids)) != len(model_ids):
+            raise ValueError("model_ids must be unique")
+        probabilities = (
+            _validate_unit_interval(self.home_probability, "home_probability"),
+            _validate_unit_interval(self.draw_probability, "draw_probability"),
+            _validate_unit_interval(self.away_probability, "away_probability"),
+        )
+        if abs(sum(probabilities) - 1.0) > 1e-6:
+            raise ValueError("Consensus probabilities must sum to 1")
+        object.__setattr__(self, "model_ids", model_ids)
+        object.__setattr__(self, "home_probability", probabilities[0])
+        object.__setattr__(self, "draw_probability", probabilities[1])
+        object.__setattr__(self, "away_probability", probabilities[2])
+        for name in ("agreement", "mean_pairwise_distance", "max_spread", "margin"):
+            object.__setattr__(
+                self,
+                name,
+                _validate_unit_interval(getattr(self, name), name),
+            )
+        if self.leading_outcome not in {"home", "draw", "away", "tie"}:
+            raise ValueError("leading_outcome must be home, draw, away, or tie")
+        object.__setattr__(self, "method", _require_text(self.method, "method"))
+        object.__setattr__(self, "rationale", tuple(self.rationale))
+
+
+@dataclass(frozen=True)
 class ConfidenceOutput:
     evidence: float
     model: float
@@ -277,9 +325,9 @@ class MatchContext:
     evidence: EvidenceOutput | None = None
     rule_outputs: tuple[Mapping[str, Any], ...] = ()
     model_outputs: tuple[ModelOutput, ...] = ()
+    consensus: ConsensusOutput | None = None
     confidence: ConfidenceOutput | None = None
     adjustment: AdjustmentOutput | None = None
-    consensus: Mapping[str, Any] | None = None
     decision: DecisionOutput | None = None
 
     def __post_init__(self) -> None:
@@ -305,8 +353,6 @@ class MatchContext:
             tuple(_freeze_mapping(item) for item in self.rule_outputs),
         )
         object.__setattr__(self, "model_outputs", tuple(self.model_outputs))
-        if self.consensus is not None:
-            object.__setattr__(self, "consensus", _freeze_mapping(self.consensus))
         if self.evidence is not None and self.evidence.gate is EvidenceGate.REJECTED:
             if self.decision is not None and self.decision.action is not DecisionAction.NO_DECISION:
                 raise ValueError("Rejected evidence cannot produce an active decision")
