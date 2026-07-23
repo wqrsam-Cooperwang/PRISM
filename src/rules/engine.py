@@ -127,8 +127,6 @@ class RuleEngine:
 
     def run(self, context: MatchContext) -> MatchContext:
         outputs = tuple(
-            output
-            for rule in self._rules
-            if (output := rule.evaluate(context)) is not None
+            output for rule in self._rules if (output := rule.evaluate(context)) is not None
         )
         return replace(context, rule_outputs=outputs)
