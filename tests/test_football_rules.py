@@ -42,12 +42,8 @@ def test_unconfirmed_lineup_rule_requires_explicit_false() -> None:
 
 
 def test_material_market_movement_uses_absolute_threshold() -> None:
-    below = RuleEngine().run(
-        replace(build_context(), market={"home_odds_move_pct": -0.119})
-    )
-    at_threshold = RuleEngine().run(
-        replace(build_context(), market={"away_odds_move_pct": 0.12})
-    )
+    below = RuleEngine().run(replace(build_context(), market={"home_odds_move_pct": -0.119}))
+    at_threshold = RuleEngine().run(replace(build_context(), market={"away_odds_move_pct": 0.12}))
     assert "RULE-MKT001" not in rule_ids(below)
     assert "RULE-MKT001" in rule_ids(at_threshold)
 
