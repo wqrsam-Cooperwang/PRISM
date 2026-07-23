@@ -1,5 +1,7 @@
+from dataclasses import replace
 from datetime import datetime, timezone
 
+from src.adjustment.engine import AdjustmentEngine
 from src.confidence.engine import ConfidenceEngine
 from src.core.pipeline import Pipeline
 from src.domain.models import (
@@ -11,6 +13,7 @@ from src.domain.models import (
     TeamInfo,
 )
 from src.evidence.context_engine import EvidenceEngine
+from src.rules.engine import RuleEngine
 
 
 def build_context() -> MatchContext:
@@ -66,6 +69,27 @@ def test_pipeline_runs_evidence_then_confidence() -> None:
     assert result.confidence is not None
     assert result.confidence.evidence == 1.0
     assert result.confidence.band is ConfidenceBand.MEDIUM
+
+
+def test_pipeline_runs_through_rule_and_adjustment_layers() -> None:
+    original = replace(build_context(), lineups={"confirmed": False})
+    result = Pipeline(
+        [
+            complete_evidence_engine(),
+            ConfidenceEngine(),
+            RuleEngine(),
+            AdjustmentEngine(),
+        ]
+    ).run(original)
+
+    assert original.evidence is None
+    assert original.confidence is None
+    assert original.rule_outputs == ()
+    assert original.adjustment is None
+    assert result.confidence is not None
+    assert result.adjustment is not None
+    assert "restrict_high_confidence_action" in result.adjustment.applied_effects
+    assert result.adjustment.adjusted_confidence <= result.confidence.overall
 
 
 def test_empty_pipeline_returns_original_context() -> None:
