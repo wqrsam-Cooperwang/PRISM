@@ -81,7 +81,7 @@ def test_limited_evidence_and_low_confidence_both_activate() -> None:
         confidence=confidence(ConfidenceBand.LOW),
     )
     result = RuleEngine().run(context)
-    assert rule_ids(result) == ("RULE-E002", "RULE-C001")
+    assert rule_ids(result) == ("RULE-C001", "RULE-E002")
 
 
 def test_material_model_disagreement_activates() -> None:
