@@ -107,9 +107,7 @@ def evaluate_evidence(payload: Mapping[str, float]) -> EvidenceResult:
         raise TypeError("Evidence payload must be a mapping")
 
     validated = _validate_payload(payload)
-    normalized = {
-        category: validated.get(category, 0.0) for category in CATEGORY_WEIGHTS
-    }
+    normalized = {category: validated.get(category, 0.0) for category in CATEGORY_WEIGHTS}
 
     category_scores = {
         category: round(normalized[category] * weight, 4)
