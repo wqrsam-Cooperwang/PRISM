@@ -206,8 +206,7 @@ class Engine(Protocol):
     engine_id: str
     engine_version: str
 
-    def run(self, context: MatchContext) -> MatchContext:
-        ...
+    def run(self, context: MatchContext) -> MatchContext: ...
 ```
 
 Rules:
