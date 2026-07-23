@@ -1,7 +1,15 @@
 from datetime import datetime, timezone
 
+from src.confidence.engine import ConfidenceEngine
 from src.core.pipeline import Pipeline
-from src.domain.models import AnalysisSession, EvidenceGate, MatchContext, MatchInfo, TeamInfo
+from src.domain.models import (
+    AnalysisSession,
+    ConfidenceBand,
+    EvidenceGate,
+    MatchContext,
+    MatchInfo,
+    TeamInfo,
+)
 from src.evidence.context_engine import EvidenceEngine
 
 
@@ -22,9 +30,8 @@ def build_context() -> MatchContext:
     )
 
 
-def test_pipeline_runs_evidence_engine_without_mutating_input() -> None:
-    original = build_context()
-    engine = EvidenceEngine(
+def complete_evidence_engine() -> EvidenceEngine:
+    return EvidenceEngine(
         {
             "lineup": 1.0,
             "injuries": 1.0,
@@ -37,13 +44,28 @@ def test_pipeline_runs_evidence_engine_without_mutating_input() -> None:
         }
     )
 
-    result = Pipeline([engine]).run(original)
+
+def test_pipeline_runs_evidence_engine_without_mutating_input() -> None:
+    original = build_context()
+    result = Pipeline([complete_evidence_engine()]).run(original)
 
     assert original.evidence is None
     assert result is not original
     assert result.evidence is not None
     assert result.evidence.score == 100
     assert result.evidence.gate is EvidenceGate.DEEP
+
+
+def test_pipeline_runs_evidence_then_confidence() -> None:
+    original = build_context()
+    result = Pipeline([complete_evidence_engine(), ConfidenceEngine()]).run(original)
+
+    assert original.evidence is None
+    assert original.confidence is None
+    assert result.evidence is not None
+    assert result.confidence is not None
+    assert result.confidence.evidence == 1.0
+    assert result.confidence.band is ConfidenceBand.MEDIUM
 
 
 def test_empty_pipeline_returns_original_context() -> None:
