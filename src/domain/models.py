@@ -210,6 +210,40 @@ class ConfidenceOutput:
 
 
 @dataclass(frozen=True)
+class AdjustmentOutput:
+    base_confidence: float
+    adjusted_confidence: float
+    confidence_cap: float | None = None
+    decision_blocked: bool = False
+    applied_effects: tuple[str, ...] = ()
+    observed_effects: tuple[str, ...] = ()
+    rationale: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "base_confidence",
+            _validate_unit_interval(self.base_confidence, "base_confidence"),
+        )
+        object.__setattr__(
+            self,
+            "adjusted_confidence",
+            _validate_unit_interval(self.adjusted_confidence, "adjusted_confidence"),
+        )
+        if self.confidence_cap is not None:
+            object.__setattr__(
+                self,
+                "confidence_cap",
+                _validate_unit_interval(self.confidence_cap, "confidence_cap"),
+            )
+        if self.adjusted_confidence > self.base_confidence + 1e-12:
+            raise ValueError("adjusted_confidence cannot exceed base_confidence")
+        object.__setattr__(self, "applied_effects", tuple(self.applied_effects))
+        object.__setattr__(self, "observed_effects", tuple(self.observed_effects))
+        object.__setattr__(self, "rationale", tuple(self.rationale))
+
+
+@dataclass(frozen=True)
 class DecisionOutput:
     action: DecisionAction = DecisionAction.NO_DECISION
     selected_market: str | None = None
@@ -244,6 +278,7 @@ class MatchContext:
     rule_outputs: tuple[Mapping[str, Any], ...] = ()
     model_outputs: tuple[ModelOutput, ...] = ()
     confidence: ConfidenceOutput | None = None
+    adjustment: AdjustmentOutput | None = None
     consensus: Mapping[str, Any] | None = None
     decision: DecisionOutput | None = None
 
