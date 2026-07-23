@@ -31,9 +31,7 @@ class AdjustmentEngine:
         confidence_cap = _strictest_cap(applied_effects)
         base_confidence = context.confidence.overall
         adjusted_confidence = (
-            base_confidence
-            if confidence_cap is None
-            else min(base_confidence, confidence_cap)
+            base_confidence if confidence_cap is None else min(base_confidence, confidence_cap)
         )
         decision_blocked = "block_active_decision" in applied_effects
 

@@ -54,6 +54,4 @@ def test_adjustment_serializes_inside_match_context() -> None:
     )
     payload = replace(build_context(), adjustment=adjustment).to_dict()
     assert payload["adjustment"]["adjusted_confidence"] == 0.69
-    assert payload["adjustment"]["applied_effects"] == [
-        "restrict_high_confidence_action"
-    ]
+    assert payload["adjustment"]["applied_effects"] == ["restrict_high_confidence_action"]
