@@ -108,9 +108,7 @@ class MatchInfo:
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "match_id", _require_text(self.match_id, "match_id"))
-        object.__setattr__(
-            self, "competition", _require_text(self.competition, "competition")
-        )
+        object.__setattr__(self, "competition", _require_text(self.competition, "competition"))
         object.__setattr__(self, "kickoff", _require_aware_datetime(self.kickoff, "kickoff"))
 
 
@@ -275,10 +273,7 @@ class MatchContext:
         if self.consensus is not None:
             object.__setattr__(self, "consensus", _freeze_mapping(self.consensus))
         if self.evidence is not None and self.evidence.gate is EvidenceGate.REJECTED:
-            if (
-                self.decision is not None
-                and self.decision.action is not DecisionAction.NO_DECISION
-            ):
+            if self.decision is not None and self.decision.action is not DecisionAction.NO_DECISION:
                 raise ValueError("Rejected evidence cannot produce an active decision")
 
     def to_dict(self) -> dict[str, Any]:
@@ -294,9 +289,7 @@ class MatchContext:
             if isinstance(value, (tuple, list)):
                 return [convert(item) for item in value]
             if is_dataclass(value) and not isinstance(value, type):
-                return {
-                    item.name: convert(getattr(value, item.name)) for item in fields(value)
-                }
+                return {item.name: convert(getattr(value, item.name)) for item in fields(value)}
             return value
 
         result = convert(self)

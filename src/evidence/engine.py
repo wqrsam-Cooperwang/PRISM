@@ -117,9 +117,7 @@ def evaluate_evidence(payload: Mapping[str, float]) -> EvidenceResult:
     score = int(raw_score + 0.5)
     gate = _gate_from_score(score)
 
-    missing = tuple(
-        category for category, completeness in normalized.items() if completeness == 0
-    )
+    missing = tuple(category for category, completeness in normalized.items() if completeness == 0)
     warnings: list[str] = []
     caps: list[str] = []
 
