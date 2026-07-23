@@ -120,12 +120,8 @@ def test_rejected_evidence_cannot_reach_medium_confidence() -> None:
 
 def test_model_confidence_handles_zero_one_many_and_cap() -> None:
     no_models = ConfidenceEngine().run(build_context())
-    one_model = ConfidenceEngine().run(
-        build_context(models=(model("m1", 0.50, 0.30, 0.20),))
-    )
-    many_models = tuple(
-        model(f"m{index}", 0.50, 0.30, 0.20) for index in range(1, 7)
-    )
+    one_model = ConfidenceEngine().run(build_context(models=(model("m1", 0.50, 0.30, 0.20),)))
+    many_models = tuple(model(f"m{index}", 0.50, 0.30, 0.20) for index in range(1, 7))
     capped = ConfidenceEngine().run(build_context(models=many_models))
     assert no_models.confidence is not None
     assert one_model.confidence is not None
