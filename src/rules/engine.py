@@ -2,35 +2,11 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, replace
-from typing import Callable, Mapping
+from dataclasses import replace
 
 from src.domain.models import ConfidenceBand, EvidenceGate, MatchContext
-
-RuleOutput = Mapping[str, object]
-Predicate = Callable[[MatchContext], bool]
-Rationale = Callable[[MatchContext], str]
-
-
-@dataclass(frozen=True)
-class Rule:
-    rule_id: str
-    version: str
-    severity: str
-    effects: tuple[str, ...]
-    predicate: Predicate
-    rationale: Rationale
-
-    def evaluate(self, context: MatchContext) -> RuleOutput | None:
-        if not self.predicate(context):
-            return None
-        return {
-            "rule_id": self.rule_id,
-            "version": self.version,
-            "severity": self.severity,
-            "rationale": self.rationale(context),
-            "effects": self.effects,
-        }
+from src.rules.football import FOOTBALL_RULES
+from src.rules.models import Rule
 
 
 def _rejected_evidence(context: MatchContext) -> bool:
@@ -69,7 +45,7 @@ def _short_turnaround(context: MatchContext) -> bool:
     return False
 
 
-DEFAULT_RULES = (
+CORE_RULES = (
     Rule(
         "RULE-E001",
         "1.0.0",
@@ -112,12 +88,14 @@ DEFAULT_RULES = (
     ),
 )
 
+DEFAULT_RULES = CORE_RULES + FOOTBALL_RULES
+
 
 class RuleEngine:
     """Evaluate registered rules and attach activated outputs to MatchContext."""
 
     name = "rules"
-    version = "1.0.0"
+    version = "1.1.0"
 
     def __init__(self, rules: tuple[Rule, ...] = DEFAULT_RULES) -> None:
         identifiers = [rule.rule_id for rule in rules]
