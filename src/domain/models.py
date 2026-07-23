@@ -285,7 +285,14 @@ class MatchContext:
             raise ValueError("MatchContext and AnalysisSession schema versions must agree")
         if self.home_team.team_id == self.away_team.team_id:
             raise ValueError("home_team and away_team must be different")
-        for name in ("lineups", "injuries", "market", "weather", "schedule", "tactical"):
+        for name in (
+            "lineups",
+            "injuries",
+            "market",
+            "weather",
+            "schedule",
+            "tactical",
+        ):
             object.__setattr__(self, name, _freeze_mapping(getattr(self, name)))
         object.__setattr__(
             self,
@@ -316,8 +323,7 @@ class MatchContext:
                 return [convert(item) for item in value]
             if is_dataclass(value) and not isinstance(value, type):
                 return {
-                    item.name: convert(getattr(value, item.name))
-                    for item in fields(value)
+                    item.name: convert(getattr(value, item.name)) for item in fields(value)
                 }
             return value
 
