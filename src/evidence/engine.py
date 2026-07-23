@@ -11,7 +11,6 @@ from math import isfinite
 from types import MappingProxyType
 from typing import Mapping
 
-
 CATEGORY_WEIGHTS: Mapping[str, int] = MappingProxyType(
     {
         "lineup": 20,
