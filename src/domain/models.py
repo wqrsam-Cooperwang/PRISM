@@ -7,13 +7,13 @@ an existing analysis state.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field, fields, is_dataclass
 from datetime import datetime
 from enum import Enum
 from math import isfinite
 from types import MappingProxyType
-from typing import Any, Mapping
-
+from typing import Any
 
 SCHEMA_VERSION = "1.0.0"
 
@@ -84,10 +84,26 @@ class AnalysisSession:
     ai_models: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
-        object.__setattr__(self, "session_id", _require_text(self.session_id, "session_id"))
-        object.__setattr__(self, "created_at", _require_aware_datetime(self.created_at, "created_at"))
-        object.__setattr__(self, "prism_version", _require_text(self.prism_version, "prism_version"))
-        object.__setattr__(self, "schema_version", _require_text(self.schema_version, "schema_version"))
+        object.__setattr__(
+            self,
+            "session_id",
+            _require_text(self.session_id, "session_id"),
+        )
+        object.__setattr__(
+            self,
+            "created_at",
+            _require_aware_datetime(self.created_at, "created_at"),
+        )
+        object.__setattr__(
+            self,
+            "prism_version",
+            _require_text(self.prism_version, "prism_version"),
+        )
+        object.__setattr__(
+            self,
+            "schema_version",
+            _require_text(self.schema_version, "schema_version"),
+        )
         object.__setattr__(self, "ai_models", tuple(self.ai_models))
 
 
@@ -102,8 +118,16 @@ class MatchInfo:
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "match_id", _require_text(self.match_id, "match_id"))
-        object.__setattr__(self, "competition", _require_text(self.competition, "competition"))
-        object.__setattr__(self, "kickoff", _require_aware_datetime(self.kickoff, "kickoff"))
+        object.__setattr__(
+            self,
+            "competition",
+            _require_text(self.competition, "competition"),
+        )
+        object.__setattr__(
+            self,
+            "kickoff",
+            _require_aware_datetime(self.kickoff, "kickoff"),
+        )
 
 
 @dataclass(frozen=True)
@@ -134,17 +158,29 @@ class EvidenceOutput:
     critical_caps_applied: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
-        if isinstance(self.score, bool) or not isinstance(self.score, int) or not 0 <= self.score <= 100:
+        if (
+            isinstance(self.score, bool)
+            or not isinstance(self.score, int)
+            or not 0 <= self.score <= 100
+        ):
             raise ValueError("score must be an integer between 0 and 100")
         raw = float(self.raw_score)
         if not isfinite(raw) or not 0.0 <= raw <= 100.0:
             raise ValueError("raw_score must be finite and between 0 and 100")
         object.__setattr__(self, "raw_score", raw)
         object.__setattr__(self, "gate", EvidenceGate(self.gate))
-        object.__setattr__(self, "category_scores", _freeze_mapping(self.category_scores))
+        object.__setattr__(
+            self,
+            "category_scores",
+            _freeze_mapping(self.category_scores),
+        )
         object.__setattr__(self, "missing_categories", tuple(self.missing_categories))
         object.__setattr__(self, "warnings", tuple(self.warnings))
-        object.__setattr__(self, "critical_caps_applied", tuple(self.critical_caps_applied))
+        object.__setattr__(
+            self,
+            "critical_caps_applied",
+            tuple(self.critical_caps_applied),
+        )
 
 
 @dataclass(frozen=True)
@@ -160,7 +196,11 @@ class ModelOutput:
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "model_id", _require_text(self.model_id, "model_id"))
-        object.__setattr__(self, "model_version", _require_text(self.model_version, "model_version"))
+        object.__setattr__(
+            self,
+            "model_version",
+            _require_text(self.model_version, "model_version"),
+        )
         probabilities = (
             _validate_unit_interval(self.home_probability, "home_probability"),
             _validate_unit_interval(self.draw_probability, "draw_probability"),
@@ -187,7 +227,11 @@ class ConfidenceOutput:
 
     def __post_init__(self) -> None:
         for name in ("evidence", "model", "context", "consensus", "overall"):
-            object.__setattr__(self, name, _validate_unit_interval(getattr(self, name), name))
+            object.__setattr__(
+                self,
+                name,
+                _validate_unit_interval(getattr(self, name), name),
+            )
         object.__setattr__(self, "band", ConfidenceBand(self.band))
         object.__setattr__(self, "penalties", tuple(self.penalties))
         object.__setattr__(self, "rationale", tuple(self.rationale))
@@ -232,19 +276,30 @@ class MatchContext:
     decision: DecisionOutput | None = None
 
     def __post_init__(self) -> None:
-        object.__setattr__(self, "schema_version", _require_text(self.schema_version, "schema_version"))
+        object.__setattr__(
+            self,
+            "schema_version",
+            _require_text(self.schema_version, "schema_version"),
+        )
         if self.schema_version != self.session.schema_version:
             raise ValueError("MatchContext and AnalysisSession schema versions must agree")
         if self.home_team.team_id == self.away_team.team_id:
             raise ValueError("home_team and away_team must be different")
         for name in ("lineups", "injuries", "market", "weather", "schedule", "tactical"):
             object.__setattr__(self, name, _freeze_mapping(getattr(self, name)))
-        object.__setattr__(self, "rule_outputs", tuple(_freeze_mapping(item) for item in self.rule_outputs))
+        object.__setattr__(
+            self,
+            "rule_outputs",
+            tuple(_freeze_mapping(item) for item in self.rule_outputs),
+        )
         object.__setattr__(self, "model_outputs", tuple(self.model_outputs))
         if self.consensus is not None:
             object.__setattr__(self, "consensus", _freeze_mapping(self.consensus))
         if self.evidence is not None and self.evidence.gate is EvidenceGate.REJECTED:
-            if self.decision is not None and self.decision.action is not DecisionAction.NO_DECISION:
+            if (
+                self.decision is not None
+                and self.decision.action is not DecisionAction.NO_DECISION
+            ):
                 raise ValueError("Rejected evidence cannot produce an active decision")
 
     def to_dict(self) -> dict[str, Any]:
@@ -260,7 +315,10 @@ class MatchContext:
             if isinstance(value, (tuple, list)):
                 return [convert(item) for item in value]
             if is_dataclass(value) and not isinstance(value, type):
-                return {item.name: convert(getattr(value, item.name)) for item in fields(value)}
+                return {
+                    item.name: convert(getattr(value, item.name))
+                    for item in fields(value)
+                }
             return value
 
         result = convert(self)
