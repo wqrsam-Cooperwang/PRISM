@@ -27,7 +27,7 @@ class ConfidenceEngine:
     """Attach confidence output to a new MatchContext."""
 
     name = "confidence"
-    version = "1.0.0"
+    version = "1.1.0"
 
     def run(self, context: MatchContext) -> MatchContext:
         if context.evidence is None:
@@ -36,7 +36,11 @@ class ConfidenceEngine:
         evidence_score = context.evidence.score / 100.0
         model_score = _model_confidence(context.model_outputs)
         context_score = _context_confidence(context)
-        consensus_score = _consensus_confidence(context.model_outputs)
+        consensus_score = (
+            context.consensus.agreement
+            if context.consensus is not None
+            else _consensus_confidence(context.model_outputs)
+        )
 
         uncapped = (
             evidence_score * 0.45
