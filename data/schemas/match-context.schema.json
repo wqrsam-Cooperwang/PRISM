@@ -68,6 +68,24 @@
     "rule_outputs": {"type": "array", "items": {"type": "object"}},
     "model_outputs": {"type": "array", "items": {"$ref": "#/$defs/modelOutput"}},
     "confidence": {"type": ["object", "null"]},
+    "adjustment": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object",
+          "required": ["base_confidence", "adjusted_confidence", "confidence_cap", "decision_blocked", "applied_effects", "observed_effects", "rationale"],
+          "properties": {
+            "base_confidence": {"type": "number", "minimum": 0, "maximum": 1},
+            "adjusted_confidence": {"type": "number", "minimum": 0, "maximum": 1},
+            "confidence_cap": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+            "decision_blocked": {"type": "boolean"},
+            "applied_effects": {"type": "array", "items": {"type": "string"}},
+            "observed_effects": {"type": "array", "items": {"type": "string"}},
+            "rationale": {"type": "array", "items": {"type": "string"}}
+          }
+        }
+      ]
+    },
     "consensus": {"type": ["object", "null"]},
     "decision": {"type": ["object", "null"]}
   },
