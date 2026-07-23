@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import replace
 from typing import Mapping
 
-from src.domain.models import EvidenceOutput, MatchContext
+from src.domain.models import EvidenceGate, EvidenceOutput, MatchContext
 from src.evidence.engine import evaluate_evidence
 
 
@@ -23,7 +23,7 @@ class EvidenceEngine:
         output = EvidenceOutput(
             score=result.score,
             raw_score=result.raw_score,
-            gate=result.gate,
+            gate=EvidenceGate(result.gate),
             category_scores=result.category_scores,
             missing_categories=result.missing_categories,
             warnings=result.warnings,
