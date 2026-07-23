@@ -5,9 +5,11 @@ from src.adjustment.engine import AdjustmentEngine
 from src.confidence.engine import ConfidenceEngine
 from src.consensus.engine import ConsensusEngine
 from src.core.pipeline import Pipeline
+from src.decision.engine import DecisionEngine
 from src.domain.models import (
     AnalysisSession,
     ConfidenceBand,
+    DecisionAction,
     EvidenceGate,
     MatchContext,
     MatchInfo,
@@ -113,6 +115,36 @@ def test_preferred_pipeline_runs_consensus_before_confidence_rules_and_adjustmen
     assert result.adjustment is not None
     assert "restrict_high_confidence_action" in result.adjustment.applied_effects
     assert result.adjustment.adjusted_confidence <= result.confidence.overall
+
+
+def test_full_pipeline_can_produce_governed_candidate() -> None:
+    original = replace(
+        build_context(),
+        market={"home_odds": 2.0, "draw_odds": 4.2, "away_odds": 6.0},
+        model_outputs=(
+            model("poisson", 0.58, 0.24, 0.18),
+            model("bayesian", 0.56, 0.25, 0.19),
+        ),
+    )
+    result = Pipeline(
+        [
+            complete_evidence_engine(),
+            ConsensusEngine(),
+            ConfidenceEngine(),
+            RuleEngine(),
+            AdjustmentEngine(),
+            DecisionEngine(),
+        ]
+    ).run(original)
+
+    assert original.decision is None
+    assert result.consensus is not None
+    assert result.adjustment is not None
+    assert result.decision is not None
+    assert result.decision.action is DecisionAction.CANDIDATE
+    assert result.decision.selected_market == "home"
+    assert result.decision.expected_value is not None
+    assert result.decision.expected_value > 0
 
 
 def test_empty_pipeline_returns_original_context() -> None:
