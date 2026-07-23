@@ -59,6 +59,7 @@ FOOTBALL_RULES = (
         ("apply_first_leg_caution", "avoid_overconfident_game_state_assumption"),
         _first_leg,
         lambda _: "Match stage is first leg; downstream analysis must acknowledge leg context.",
+        priority=40,
     ),
     Rule(
         "RULE-L001",
@@ -67,6 +68,7 @@ FOOTBALL_RULES = (
         ("require_lineup_confirmation", "restrict_high_confidence_action"),
         _lineup_unconfirmed,
         lambda _: "Lineups are explicitly marked as unconfirmed.",
+        priority=70,
     ),
     Rule(
         "RULE-MKT001",
@@ -75,6 +77,7 @@ FOOTBALL_RULES = (
         ("flag_market_movement", "require_market_rationale"),
         _material_market_move,
         lambda _: "At least one supported odds movement is 12% or greater in absolute terms.",
+        priority=60,
     ),
     Rule(
         "RULE-P001",
@@ -83,6 +86,7 @@ FOOTBALL_RULES = (
         ("apply_season_phase_caution", "downweight_historical_form_confidence"),
         _preseason_or_early,
         lambda _: "Match is explicitly marked as preseason or early season.",
+        priority=45,
     ),
     Rule(
         "RULE-S002",
@@ -91,5 +95,6 @@ FOOTBALL_RULES = (
         ("flag_rest_disparity", "require_schedule_rationale"),
         _rest_disparity,
         lambda _: "The explicit rest-day difference between teams is at least four days.",
+        priority=35,
     ),
 )
