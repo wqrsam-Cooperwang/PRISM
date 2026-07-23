@@ -130,7 +130,9 @@ def _strongest_decision_restriction(outputs: Iterable[RuleOutput]) -> str | None
     return strongest
 
 
-def _resolve_outputs(outputs: tuple[RuleOutput, ...], ruleset_version: str) -> tuple[RuleOutput, ...]:
+def _resolve_outputs(
+    outputs: tuple[RuleOutput, ...], ruleset_version: str
+) -> tuple[RuleOutput, ...]:
     strongest_restriction = _strongest_decision_restriction(outputs)
     seen_effects: set[str] = set()
     resolved: list[RuleOutput] = []
@@ -189,9 +191,7 @@ class RuleEngine:
 
     def run(self, context: MatchContext) -> MatchContext:
         outputs = tuple(
-            output
-            for rule in self._rules
-            if (output := rule.evaluate(context)) is not None
+            output for rule in self._rules if (output := rule.evaluate(context)) is not None
         )
         return replace(
             context,
