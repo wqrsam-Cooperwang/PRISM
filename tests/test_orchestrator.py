@@ -15,7 +15,6 @@ from src.domain.models import (
     TeamInfo,
 )
 from src.evidence.context_engine import EvidenceEngine
-from src.rules.engine import RuleEngine
 from src.runtime.orchestrator import OrchestrationError, PrismOrchestrator
 
 
