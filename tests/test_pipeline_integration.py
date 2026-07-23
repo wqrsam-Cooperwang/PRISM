@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 
 from src.adjustment.engine import AdjustmentEngine
 from src.confidence.engine import ConfidenceEngine
+from src.consensus.engine import ConsensusEngine
 from src.core.pipeline import Pipeline
 from src.domain.models import (
     AnalysisSession,
@@ -10,6 +11,7 @@ from src.domain.models import (
     EvidenceGate,
     MatchContext,
     MatchInfo,
+    ModelOutput,
     TeamInfo,
 )
 from src.evidence.context_engine import EvidenceEngine
@@ -30,6 +32,16 @@ def build_context() -> MatchContext:
         ),
         home_team=TeamInfo(team_id="home", name="Home FC"),
         away_team=TeamInfo(team_id="away", name="Away FC"),
+    )
+
+
+def model(model_id: str, home: float, draw: float, away: float) -> ModelOutput:
+    return ModelOutput(
+        model_id=model_id,
+        model_version="1.0.0",
+        home_probability=home,
+        draw_probability=draw,
+        away_probability=away,
     )
 
 
@@ -71,11 +83,19 @@ def test_pipeline_runs_evidence_then_confidence() -> None:
     assert result.confidence.band is ConfidenceBand.MEDIUM
 
 
-def test_pipeline_runs_through_rule_and_adjustment_layers() -> None:
-    original = replace(build_context(), lineups={"confirmed": False})
+def test_preferred_pipeline_runs_consensus_before_confidence_rules_and_adjustment() -> None:
+    original = replace(
+        build_context(),
+        lineups={"confirmed": False},
+        model_outputs=(
+            model("poisson", 0.55, 0.25, 0.20),
+            model("bayesian", 0.50, 0.30, 0.20),
+        ),
+    )
     result = Pipeline(
         [
             complete_evidence_engine(),
+            ConsensusEngine(),
             ConfidenceEngine(),
             RuleEngine(),
             AdjustmentEngine(),
@@ -83,10 +103,13 @@ def test_pipeline_runs_through_rule_and_adjustment_layers() -> None:
     ).run(original)
 
     assert original.evidence is None
+    assert original.consensus is None
     assert original.confidence is None
     assert original.rule_outputs == ()
     assert original.adjustment is None
+    assert result.consensus is not None
     assert result.confidence is not None
+    assert result.confidence.consensus == result.consensus.agreement
     assert result.adjustment is not None
     assert "restrict_high_confidence_action" in result.adjustment.applied_effects
     assert result.adjustment.adjusted_confidence <= result.confidence.overall
