@@ -84,25 +84,15 @@ class AnalysisSession:
     ai_models: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
+        object.__setattr__(self, "session_id", _require_text(self.session_id, "session_id"))
         object.__setattr__(
-            self,
-            "session_id",
-            _require_text(self.session_id, "session_id"),
+            self, "created_at", _require_aware_datetime(self.created_at, "created_at")
         )
         object.__setattr__(
-            self,
-            "created_at",
-            _require_aware_datetime(self.created_at, "created_at"),
+            self, "prism_version", _require_text(self.prism_version, "prism_version")
         )
         object.__setattr__(
-            self,
-            "prism_version",
-            _require_text(self.prism_version, "prism_version"),
-        )
-        object.__setattr__(
-            self,
-            "schema_version",
-            _require_text(self.schema_version, "schema_version"),
+            self, "schema_version", _require_text(self.schema_version, "schema_version")
         )
         object.__setattr__(self, "ai_models", tuple(self.ai_models))
 
@@ -119,15 +109,9 @@ class MatchInfo:
     def __post_init__(self) -> None:
         object.__setattr__(self, "match_id", _require_text(self.match_id, "match_id"))
         object.__setattr__(
-            self,
-            "competition",
-            _require_text(self.competition, "competition"),
+            self, "competition", _require_text(self.competition, "competition")
         )
-        object.__setattr__(
-            self,
-            "kickoff",
-            _require_aware_datetime(self.kickoff, "kickoff"),
-        )
+        object.__setattr__(self, "kickoff", _require_aware_datetime(self.kickoff, "kickoff"))
 
 
 @dataclass(frozen=True)
@@ -169,18 +153,10 @@ class EvidenceOutput:
             raise ValueError("raw_score must be finite and between 0 and 100")
         object.__setattr__(self, "raw_score", raw)
         object.__setattr__(self, "gate", EvidenceGate(self.gate))
-        object.__setattr__(
-            self,
-            "category_scores",
-            _freeze_mapping(self.category_scores),
-        )
+        object.__setattr__(self, "category_scores", _freeze_mapping(self.category_scores))
         object.__setattr__(self, "missing_categories", tuple(self.missing_categories))
         object.__setattr__(self, "warnings", tuple(self.warnings))
-        object.__setattr__(
-            self,
-            "critical_caps_applied",
-            tuple(self.critical_caps_applied),
-        )
+        object.__setattr__(self, "critical_caps_applied", tuple(self.critical_caps_applied))
 
 
 @dataclass(frozen=True)
@@ -197,9 +173,7 @@ class ModelOutput:
     def __post_init__(self) -> None:
         object.__setattr__(self, "model_id", _require_text(self.model_id, "model_id"))
         object.__setattr__(
-            self,
-            "model_version",
-            _require_text(self.model_version, "model_version"),
+            self, "model_version", _require_text(self.model_version, "model_version")
         )
         probabilities = (
             _validate_unit_interval(self.home_probability, "home_probability"),
@@ -277,9 +251,7 @@ class MatchContext:
 
     def __post_init__(self) -> None:
         object.__setattr__(
-            self,
-            "schema_version",
-            _require_text(self.schema_version, "schema_version"),
+            self, "schema_version", _require_text(self.schema_version, "schema_version")
         )
         if self.schema_version != self.session.schema_version:
             raise ValueError("MatchContext and AnalysisSession schema versions must agree")
