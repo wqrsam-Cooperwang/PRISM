@@ -93,9 +93,7 @@ def test_blocked_adjustment_forces_no_decision() -> None:
 
 
 def test_missing_or_partial_odds_yields_watch() -> None:
-    missing = DecisionEngine().run(
-        build_context(consensus=consensus(), adjustment=adjustment())
-    )
+    missing = DecisionEngine().run(build_context(consensus=consensus(), adjustment=adjustment()))
     partial = DecisionEngine().run(
         build_context(
             consensus=consensus(),

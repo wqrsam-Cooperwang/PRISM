@@ -79,8 +79,7 @@ class DecisionEngine:
             "away": context.consensus.away_probability,
         }
         expected_values = {
-            outcome: probabilities[outcome] * price - 1.0
-            for outcome, price in odds.items()
+            outcome: probabilities[outcome] * price - 1.0 for outcome, price in odds.items()
         }
         selected_market = _select_market(expected_values)
         selected_ev = expected_values[selected_market]
