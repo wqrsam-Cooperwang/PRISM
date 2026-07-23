@@ -50,9 +50,7 @@ def test_duplicate_model_ids_are_rejected() -> None:
 
 
 def test_single_model_preserves_distribution_with_neutral_agreement() -> None:
-    result = ConsensusEngine().run(
-        build_context((model("only", 0.55, 0.25, 0.20),))
-    )
+    result = ConsensusEngine().run(build_context((model("only", 0.55, 0.25, 0.20),)))
     assert result.consensus is not None
     assert result.consensus.model_count == 1
     assert result.consensus.home_probability == 0.55
@@ -117,9 +115,7 @@ def test_strong_model_disagreement_reduces_agreement() -> None:
 
 
 def test_equal_top_probabilities_are_reported_as_tie() -> None:
-    result = ConsensusEngine().run(
-        build_context((model("a", 0.40, 0.40, 0.20),))
-    )
+    result = ConsensusEngine().run(build_context((model("a", 0.40, 0.40, 0.20),)))
     assert result.consensus is not None
     assert result.consensus.leading_outcome == "tie"
     assert result.consensus.margin == 0.0
