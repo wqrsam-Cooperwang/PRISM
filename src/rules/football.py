@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from src.domain.models import MatchContext
-from src.rules.engine import Rule
+from src.rules.models import Rule
 
 _MARKET_MOVE_KEYS = (
     "home_odds_move_pct",
