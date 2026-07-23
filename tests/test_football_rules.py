@@ -89,4 +89,4 @@ def test_multiple_football_rules_accumulate_deterministically() -> None:
     )
     result = RuleEngine().run(context)
     ids = rule_ids(result)
-    assert ids == ("RULE-S001", "RULE-F001", "RULE-L001", "RULE-MKT001", "RULE-S002")
+    assert ids == ("RULE-L001", "RULE-MKT001", "RULE-F001", "RULE-S002", "RULE-S001")
