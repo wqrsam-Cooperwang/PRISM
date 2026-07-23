@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import replace
 from statistics import mean
 
@@ -58,7 +59,7 @@ class ConsensusEngine:
             leading_outcome=leading_outcome,
             margin=round(margin, 6),
             rationale=(
-                f"method=equal_weight_mean",
+                "method=equal_weight_mean",
                 f"model_count={len(models)}",
                 f"agreement={agreement:.6f}",
                 f"max_spread={max_spread:.6f}",
@@ -83,7 +84,7 @@ def _probability_distance(left: ModelOutput, right: ModelOutput) -> float:
     ) / 2.0
 
 
-def _spread(values) -> float:
+def _spread(values: Iterable[float]) -> float:
     materialized = tuple(values)
     return max(materialized) - min(materialized)
 
