@@ -194,12 +194,18 @@ class VerifiedClaim:
         object.__setattr__(
             self,
             "supporting_observation_ids",
-            tuple(_require_text(item, "observation_id") for item in self.supporting_observation_ids),
+            tuple(
+                _require_text(item, "observation_id")
+                for item in self.supporting_observation_ids
+            ),
         )
         object.__setattr__(
             self,
             "conflicting_observation_ids",
-            tuple(_require_text(item, "observation_id") for item in self.conflicting_observation_ids),
+            tuple(
+                _require_text(item, "observation_id")
+                for item in self.conflicting_observation_ids
+            ),
         )
         object.__setattr__(
             self,
