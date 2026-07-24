@@ -60,9 +60,7 @@ def _case(case_id: str, home_goals: int, away_goals: int) -> EvaluationCase:
 
 
 def _summary():
-    return RealMatchEvaluationHarness().evaluate_many(
-        (_case("first", 1, 0), _case("second", 0, 1))
-    )
+    return RealMatchEvaluationHarness().evaluate_many((_case("first", 1, 0), _case("second", 0, 1)))
 
 
 def test_jsonl_round_trip_preserves_exported_records() -> None:
@@ -144,9 +142,7 @@ def test_load_benchmark_aggregates_imported_historical_records() -> None:
     assert benchmark.mean_brier_score == pytest.approx(
         sum(record.brier_score for record in records) / 2
     )
-    assert benchmark.mean_log_loss == pytest.approx(
-        sum(record.log_loss for record in records) / 2
-    )
+    assert benchmark.mean_log_loss == pytest.approx(sum(record.log_loss for record in records) / 2)
     assert benchmark.prism_versions == ("3.2.0-alpha1",)
     assert benchmark.runtime_versions == ("1.0.0",)
     assert benchmark.git_commits == ("benchmark123",)
