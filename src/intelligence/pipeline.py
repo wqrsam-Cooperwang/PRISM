@@ -77,19 +77,14 @@ def _category_source_cap(observation: Observation) -> float:
         return 0.55
     if source_type == SourceType.COMMUNITY:
         return 0.45
-    if (
-        category == IntelligenceCategory.AVAILABILITY
-        and source_type == SourceType.AGGREGATOR
-    ):
+    if category == IntelligenceCategory.AVAILABILITY and source_type == SourceType.AGGREGATOR:
         return 0.65
     return 1.0
 
 
 def _effective_weight(observation: Observation) -> tuple[float, bool]:
     freshness, stale = _freshness_factor(observation)
-    provider_confidence = (
-        observation.confidence if observation.confidence is not None else 1.0
-    )
+    provider_confidence = observation.confidence if observation.confidence is not None else 1.0
     authority = min(
         _SOURCE_WEIGHT[observation.source.source_type],
         _category_source_cap(observation),
@@ -114,9 +109,7 @@ def _verify_group(observations: tuple[Observation, ...]) -> VerifiedClaim:
     share = winner_weight / total if total > 0 else 0.0
     conflict_ratio = second_weight / winner_weight if winner_weight > 0 else 1.0
 
-    winner_members = tuple(
-        sorted(members[winner_key], key=lambda item: item.observation_id)
-    )
+    winner_members = tuple(sorted(members[winner_key], key=lambda item: item.observation_id))
     winner_ids = tuple(item.observation_id for item in winner_members)
     conflict_ids = tuple(
         sorted(
@@ -169,13 +162,13 @@ def verify_observations(
     if len(set(observation_ids)) != len(observation_ids):
         raise ValueError("observation_id values must be unique")
 
-    grouped: dict[
-        tuple[IntelligenceCategory, str | None, str], list[Observation]
-    ] = defaultdict(list)
+    grouped: dict[tuple[IntelligenceCategory, str | None, str], list[Observation]] = defaultdict(
+        list
+    )
     for observation in observations:
-        grouped[
-            (observation.category, observation.subject, observation.claim_key)
-        ].append(observation)
+        grouped[(observation.category, observation.subject, observation.claim_key)].append(
+            observation
+        )
 
     claims = [
         _verify_group(tuple(sorted(group, key=lambda item: item.observation_id)))
