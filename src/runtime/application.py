@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from dataclasses import asdict, replace
 from datetime import datetime
 from typing import Any
 
@@ -10,6 +11,7 @@ from src.decision.engine import DecisionEngine
 from src.runtime.factory import build_runtime
 from src.runtime.orchestrator import RuntimeResult
 from src.runtime.request import MatchRequest, build_match_context
+from src.scoreline.engine import ScorelineEngine
 
 
 def analyze_match(
@@ -28,7 +30,7 @@ def analyze_match(
     operator: str | None = None,
     ai_models: tuple[str, ...] = (),
 ) -> RuntimeResult:
-    """Build canonical input, assemble production runtime, and execute it."""
+    """Build canonical input, execute governed runtime, then attach scorelines."""
 
     context = build_match_context(
         request,
@@ -44,7 +46,9 @@ def analyze_match(
         ai_models=ai_models,
     )
     runtime = build_runtime(completeness, decision_engine=decision_engine)
-    return runtime.run(context)
+    result = runtime.run(context)
+    scoreline = ScorelineEngine().run(result.context)
+    return replace(result, scoreline=scoreline)
 
 
 def analyze_match_dict(
@@ -54,7 +58,7 @@ def analyze_match_dict(
     prism_version: str,
     **metadata: Any,
 ) -> dict[str, Any]:
-    """Run PRISM and return its final canonical context as JSON-compatible data."""
+    """Run PRISM and return JSON-compatible context plus governed scorelines."""
 
     result = analyze_match(
         request,
@@ -62,4 +66,6 @@ def analyze_match_dict(
         prism_version=prism_version,
         **metadata,
     )
-    return result.context.to_dict()
+    output = result.context.to_dict()
+    output["scoreline"] = None if result.scoreline is None else asdict(result.scoreline)
+    return output
