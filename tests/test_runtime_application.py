@@ -27,8 +27,8 @@ def request() -> MatchRequest:
         away_team_id="away",
         away_team_name="Away FC",
         model_outputs=(
-            ModelOutput("poisson", "1.0.0", 0.58, 0.24, 0.18),
-            ModelOutput("elo", "1.0.0", 0.54, 0.27, 0.19),
+            ModelOutput("poisson", "1.0.0", 0.58, 0.24, 0.18, 1.6, 0.8),
+            ModelOutput("elo", "1.0.0", 0.54, 0.27, 0.19, 1.4, 1.0),
         ),
     )
 
@@ -56,6 +56,9 @@ def test_analyze_match_executes_canonical_pipeline() -> None:
     assert result.context.confidence is not None
     assert result.context.adjustment is not None
     assert result.context.decision is not None
+    assert result.scoreline is not None
+    assert result.scoreline.available is True
+    assert len(result.scoreline.top_scorelines) == 3
 
 
 def test_analyze_match_dict_returns_json_compatible_final_context() -> None:
@@ -72,3 +75,5 @@ def test_analyze_match_dict_returns_json_compatible_final_context() -> None:
     assert output["evidence"] is not None
     assert output["consensus"] is not None
     assert output["decision"] is not None
+    assert output["scoreline"]["available"] is True
+    assert len(output["scoreline"]["top_scorelines"]) == 3
