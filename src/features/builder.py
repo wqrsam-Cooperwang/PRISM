@@ -10,7 +10,7 @@ from typing import Any
 
 from src.features.models import FEATURE_SCHEMA_VERSION, FeatureVector
 from src.intelligence.models import ReadinessLevel
-from src.intelligence.normalization import NormalizedMatchInput
+from src.intelligence.normalization import NormalizedIntelligenceFacts, NormalizedMatchInput
 
 _READINESS_SCORE = {
     ReadinessLevel.REJECTED: 0.0,
@@ -126,7 +126,9 @@ def _fingerprint(
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
-def build_feature_vector(normalized: NormalizedMatchInput) -> FeatureVector:
+def build_feature_vector(
+    normalized: NormalizedIntelligenceFacts | NormalizedMatchInput,
+) -> FeatureVector:
     """Build deterministic numeric features without imputing missing facts."""
 
     data = normalized.model_feature_data
