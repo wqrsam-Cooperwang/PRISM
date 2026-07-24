@@ -1,0 +1,89 @@
+name: Promotion Enforcement
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Git ref containing the benchmark files and candidate code
+        required: true
+        default: main
+        type: string
+      baseline_path:
+        description: Workspace path to the frozen baseline evaluation JSONL
+        required: true
+        type: string
+      candidate_path:
+        description: Workspace path to the frozen candidate evaluation JSONL
+        required: true
+        type: string
+      minimum_case_count:
+        description: Minimum matched benchmark cases required for promotion
+        required: true
+        default: "100"
+        type: string
+      minimum_brier_improvement:
+        description: Minimum favorable Brier improvement required for promotion
+        required: true
+        default: "0.001"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  promotion-enforcement:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install project
+        run: python -m pip install --upgrade pip && python -m pip install -e "."
+
+      - name: Run governed promotion gate
+        id: gate
+        env:
+          BASELINE_PATH: ${{ inputs.baseline_path }}
+          CANDIDATE_PATH: ${{ inputs.candidate_path }}
+          MINIMUM_CASE_COUNT: ${{ inputs.minimum_case_count }}
+          MINIMUM_BRIER_IMPROVEMENT: ${{ inputs.minimum_brier_improvement }}
+        run: |
+          set +e
+          python scripts/promotion_gate.py \
+            "$BASELINE_PATH" \
+            "$CANDIDATE_PATH" \
+            promotion-reports \
+            --minimum-case-count "$MINIMUM_CASE_COUNT" \
+            --minimum-brier-improvement "$MINIMUM_BRIER_IMPROVEMENT"
+          gate_exit_code=$?
+          set -e
+          echo "exit_code=$gate_exit_code" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Upload promotion governance reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: promotion-governance-reports
+          path: promotion-reports/
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Enforce promotion decision
+        if: always()
+        env:
+          GATE_EXIT_CODE: ${{ steps.gate.outputs.exit_code }}
+        run: |
+          if [ -z "$GATE_EXIT_CODE" ]; then
+            echo "Promotion gate did not produce an exit code."
+            exit 1
+          fi
+          exit "$GATE_EXIT_CODE"
