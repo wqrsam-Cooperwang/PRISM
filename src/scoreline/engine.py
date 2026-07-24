@@ -77,7 +77,8 @@ class ScorelineEngine:
             tail_mass=tail_mass,
             rationale=(
                 "Expected goals are the equal-weight mean of eligible model outputs.",
-                "Exact-score probabilities use an independent Poisson baseline over goals 0 through 10.",
+                "Exact-score probabilities use an independent Poisson baseline "
+                "over goals 0 through 10.",
             ),
         )
 
