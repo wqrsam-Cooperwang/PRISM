@@ -15,6 +15,7 @@ from src.report.models import (
     ScorelineCandidateReport,
     ScorelineReport,
 )
+from src.report.renderer import render_prediction_report_markdown
 
 __all__ = [
     "AdjustmentReport",
@@ -32,4 +33,5 @@ __all__ = [
     "analyze_match_report_dict",
     "build_prediction_report",
     "build_prediction_report_dict",
+    "render_prediction_report_markdown",
 ]
