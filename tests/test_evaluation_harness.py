@@ -66,9 +66,7 @@ def test_evaluate_scores_production_prediction_against_actual_result() -> None:
     assert result.away_probability == pytest.approx(0.185)
     assert result.leading_outcome == "home"
     assert result.leading_probability == pytest.approx(0.59)
-    assert result.brier_score == pytest.approx(
-        (0.59 - 1.0) ** 2 + 0.225**2 + 0.185**2
-    )
+    assert result.brier_score == pytest.approx((0.59 - 1.0) ** 2 + 0.225**2 + 0.185**2)
     assert result.log_loss == pytest.approx(-log(0.59))
     assert result.top1_correct is True
     assert result.scoreline_top3_hit is True
