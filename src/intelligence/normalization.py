@@ -82,9 +82,7 @@ def _insert_claim(target: dict[str, Any], claim: VerifiedClaim) -> None:
     if not isinstance(subject_values, dict):
         raise ValueError(f"Duplicate normalized claim path: {claim.subject}")
     if claim.claim_key in subject_values:
-        raise ValueError(
-            f"Duplicate normalized claim path: {claim.subject}.{claim.claim_key}"
-        )
+        raise ValueError(f"Duplicate normalized claim path: {claim.subject}.{claim.claim_key}")
     subject_values[claim.claim_key] = claim.value
 
 
@@ -117,10 +115,7 @@ def _elo_ratings(
     home: float | None = None
     away: float | None = None
     for claim in claims:
-        if (
-            claim.category != IntelligenceCategory.TEAM_STRENGTH
-            or claim.claim_key != "elo_rating"
-        ):
+        if claim.category != IntelligenceCategory.TEAM_STRENGTH or claim.claim_key != "elo_rating":
             continue
         if isinstance(claim.value, bool) or not isinstance(claim.value, (int, float)):
             raise ValueError("elo_rating must be a finite numeric value")
