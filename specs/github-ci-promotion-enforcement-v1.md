@@ -46,6 +46,21 @@ The workflow:
 
 This ordering guarantees that HOLD/REJECT decisions remain auditable even though the workflow ultimately fails.
 
+## Acceptance scenarios
+
+The repository contains frozen workflow-validation datasets under `tests/fixtures/promotion_gate/`.
+They are also exercised by ordinary pytest so their governed outcomes cannot drift silently.
+
+Use the following `workflow_dispatch` inputs against `main`:
+
+| Scenario | baseline_path | candidate_path | minimum_case_count | minimum_brier_improvement | Expected workflow result |
+| --- | --- | --- | ---: | ---: | --- |
+| PROMOTE | `tests/fixtures/promotion_gate/baseline.jsonl` | `tests/fixtures/promotion_gate/promote-candidate.jsonl` | `2` | `0.001` | success; gate exit `0` |
+| HOLD | `tests/fixtures/promotion_gate/baseline.jsonl` | `tests/fixtures/promotion_gate/promote-candidate.jsonl` | `3` | `0.001` | failure; gate exit `2` |
+| REJECT | `tests/fixtures/promotion_gate/baseline.jsonl` | `tests/fixtures/promotion_gate/reject-candidate.jsonl` | `2` | `0.001` | failure; gate exit `3` |
+
+For all three scenarios the `promotion-governance-reports` artifact must be uploaded before final enforcement. The artifact must contain `comparison.json`, `comparison.md`, `promotion-decision.json`, and `promotion-decision.md`.
+
 ## Security and evolution
 
 V1 accepts repository/workspace paths only. Remote URLs and arbitrary network fetching are explicitly out of scope. External benchmark storage can later be integrated by a trusted download step without changing the CLI or governance logic.
