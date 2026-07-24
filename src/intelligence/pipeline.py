@@ -195,9 +195,7 @@ def _assess_categories(
         category_observations = tuple(
             item for item in observations if item.category == category
         )
-        verified = sum(
-            item.status == VerificationStatus.VERIFIED for item in category_claims
-        )
+        verified = sum(item.status == VerificationStatus.VERIFIED for item in category_claims)
         provisional = sum(
             item.status == VerificationStatus.PROVISIONAL for item in category_claims
         )
@@ -207,8 +205,7 @@ def _assess_categories(
         usable = tuple(
             item
             for item in category_claims
-            if item.status
-            in {VerificationStatus.VERIFIED, VerificationStatus.PROVISIONAL}
+            if item.status in {VerificationStatus.VERIFIED, VerificationStatus.PROVISIONAL}
             and item.value is not None
         )
         covered = bool(usable)
