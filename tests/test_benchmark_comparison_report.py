@@ -78,14 +78,8 @@ def test_comparison_markdown_contains_provenance_metrics_and_verdict() -> None:
     assert "Cases: **500**" in rendered
     assert "| Baseline | 3.2.0 | 1.0.0 | base123 |" in rendered
     assert "| Candidate | 3.3.0 | 1.1.0 | cand456 |" in rendered
-    assert (
-        "| mean_brier_score | 0.542000 | 0.511000 | -0.031000 | lower | improved |"
-        in rendered
-    )
-    assert (
-        "| scoreline_top3_hit_rate | N/A | N/A | N/A | higher | not_comparable |"
-        in rendered
-    )
+    assert "| mean_brier_score | 0.542000 | 0.511000 | -0.031000 | lower | improved |" in rendered
+    assert "| scoreline_top3_hit_rate | N/A | N/A | N/A | higher | not_comparable |" in rendered
     assert (
         "| mean_overall_confidence | 0.680000 | 0.701000 | 0.021000 | descriptive | "
         "descriptive |" in rendered
