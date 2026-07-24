@@ -14,7 +14,12 @@ from src.intelligence.models import (
     VerificationStatus,
     VerifiedClaim,
 )
-from src.intelligence.normalization import NormalizedMatchInput, normalize_intelligence_bundle
+from src.intelligence.normalization import (
+    NormalizedIntelligenceFacts,
+    NormalizedMatchInput,
+    normalize_intelligence_bundle,
+    normalize_intelligence_facts,
+)
 from src.intelligence.pipeline import build_intelligence_bundle, verify_observations
 
 __all__ = [
@@ -24,6 +29,7 @@ __all__ = [
     "IntelligenceCategory",
     "IntelligenceReadiness",
     "MatchTarget",
+    "NormalizedIntelligenceFacts",
     "NormalizedMatchInput",
     "Observation",
     "ReadinessLevel",
@@ -33,5 +39,6 @@ __all__ = [
     "VerifiedClaim",
     "build_intelligence_bundle",
     "normalize_intelligence_bundle",
+    "normalize_intelligence_facts",
     "verify_observations",
 ]
