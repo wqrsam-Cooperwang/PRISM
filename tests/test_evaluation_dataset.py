@@ -62,9 +62,7 @@ def _case(case_id: str, home_goals: int, away_goals: int) -> EvaluationCase:
 
 
 def _summary():
-    return RealMatchEvaluationHarness().evaluate_many(
-        (_case("first", 1, 0), _case("second", 0, 1))
-    )
+    return RealMatchEvaluationHarness().evaluate_many((_case("first", 1, 0), _case("second", 0, 1)))
 
 
 def test_records_from_summary_preserves_order_and_provenance() -> None:
@@ -95,9 +93,9 @@ def test_jsonl_export_is_deterministic_and_hashes_exact_payload() -> None:
     assert first.manifest.record_count == 2
     assert first.manifest.format == "jsonl"
     assert first.manifest.generated_at == generated_at.isoformat()
-    assert first.manifest.content_sha256 == hashlib.sha256(
-        first.payload.encode("utf-8")
-    ).hexdigest()
+    assert (
+        first.manifest.content_sha256 == hashlib.sha256(first.payload.encode("utf-8")).hexdigest()
+    )
     assert first.manifest.prism_versions == ("3.2.0-alpha1",)
     assert first.manifest.git_commits == ("dataset123",)
 
@@ -113,9 +111,10 @@ def test_csv_export_has_fixed_header_and_normalized_booleans() -> None:
     assert rows[0]["top1_correct"] == "true"
     assert rows[1]["top1_correct"] == "false"
     assert exported.manifest.format == "csv"
-    assert exported.manifest.content_sha256 == hashlib.sha256(
-        exported.payload.encode("utf-8")
-    ).hexdigest()
+    assert (
+        exported.manifest.content_sha256
+        == hashlib.sha256(exported.payload.encode("utf-8")).hexdigest()
+    )
 
 
 def test_export_rejects_naive_generated_at() -> None:
