@@ -61,6 +61,16 @@ Use the following `workflow_dispatch` inputs against `main`:
 
 For all three scenarios the `promotion-governance-reports` artifact must be uploaded before final enforcement. The artifact must contain `comparison.json`, `comparison.md`, `promotion-decision.json`, and `promotion-decision.md`.
 
+## V1 acceptance record
+
+Acceptance was completed on 24 July 2026 against commit `bc1efe4` on `main` using the frozen scenarios above.
+
+- Promotion Enforcement #1: PROMOTE completed successfully with governed exit code `0`; one governance artifact was uploaded.
+- Promotion Enforcement #2: HOLD was blocked with governed exit code `2`; one governance artifact was uploaded before enforcement failure.
+- Promotion Enforcement #3: REJECT was blocked with governed exit code `3`; one governance artifact was uploaded before enforcement failure.
+
+All three workflow-level outcomes matched the CLI and governance contracts. GitHub CI Promotion Enforcement V1 is therefore accepted. The observed GitHub Actions Node.js 20 deprecation annotation is non-blocking and is tracked as workflow maintenance rather than part of the V1 governance contract.
+
 ## Security and evolution
 
 V1 accepts repository/workspace paths only. Remote URLs and arbitrary network fetching are explicitly out of scope. External benchmark storage can later be integrated by a trusted download step without changing the CLI or governance logic.
