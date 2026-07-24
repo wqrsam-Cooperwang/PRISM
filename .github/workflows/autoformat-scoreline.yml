@@ -1,0 +1,54 @@
+name: Autoformat Scoreline
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/autoformat-scoreline.yml"
+      - "specs/scoreline-engine.md"
+      - "src/scoreline/**/*.py"
+      - "src/runtime/application.py"
+      - "src/runtime/orchestrator.py"
+      - "tests/test_scoreline_engine.py"
+      - "tests/test_runtime_application.py"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install project
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Format scoreline files
+        run: |
+          ruff format specs/scoreline-engine.md src/scoreline src/runtime/application.py src/runtime/orchestrator.py tests/test_scoreline_engine.py tests/test_runtime_application.py
+
+      - name: Verify formatting
+        run: |
+          ruff format --check specs/scoreline-engine.md src/scoreline src/runtime/application.py src/runtime/orchestrator.py tests/test_scoreline_engine.py tests/test_runtime_application.py
+
+      - name: Commit formatter changes
+        run: |
+          if git diff --quiet -- specs/scoreline-engine.md src/scoreline src/runtime/application.py src/runtime/orchestrator.py tests/test_scoreline_engine.py tests/test_runtime_application.py; then
+            echo "No formatting changes required."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add specs/scoreline-engine.md src/scoreline src/runtime/application.py src/runtime/orchestrator.py tests/test_scoreline_engine.py tests/test_runtime_application.py
+          git commit -m "style: apply Ruff formatter to scoreline output"
+          git push
