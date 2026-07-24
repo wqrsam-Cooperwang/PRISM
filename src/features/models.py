@@ -41,9 +41,7 @@ class FeatureVector:
             validated[name] = numeric
 
         missing = tuple(
-            sorted(
-                _require_text(item, "missing_feature") for item in self.missing_features
-            )
+            sorted(_require_text(item, "missing_feature") for item in self.missing_features)
         )
         if len(set(missing)) != len(missing):
             raise ValueError("missing_features must be unique")
