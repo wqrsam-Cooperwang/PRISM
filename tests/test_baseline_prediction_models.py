@@ -43,9 +43,8 @@ def test_elo_model_is_deterministic_and_probabilities_sum_to_one() -> None:
     second = model.predict(features)
 
     assert first == second
-    assert first.home_probability + first.draw_probability + first.away_probability == pytest.approx(
-        1.0
-    )
+    total_probability = first.home_probability + first.draw_probability + first.away_probability
+    assert total_probability == pytest.approx(1.0)
     assert 0.0 <= first.home_probability <= 1.0
     assert 0.0 <= first.draw_probability <= 1.0
     assert 0.0 <= first.away_probability <= 1.0
@@ -108,7 +107,6 @@ def test_baseline_suite_produces_two_independent_model_outputs() -> None:
         (MarketProbabilityModel(), EloProbabilityModel()),
         features,
     )
-
     assert tuple(output.model_id for output in outputs) == (
         "elo_probability",
         "market_probability",
