@@ -1,5 +1,10 @@
 """Post-match evaluation of governed PRISM predictions."""
 
+from src.evaluation.comparison import (
+    BenchmarkComparison,
+    MetricComparison,
+    compare_benchmarks,
+)
 from src.evaluation.dataset import (
     DATASET_SCHEMA_VERSION,
     EXPORT_VERSION,
@@ -22,6 +27,7 @@ from src.evaluation.models import EvaluationCase, EvaluationResult, EvaluationSu
 __all__ = [
     "DATASET_SCHEMA_VERSION",
     "EXPORT_VERSION",
+    "BenchmarkComparison",
     "BenchmarkSummary",
     "DatasetExport",
     "DatasetManifest",
@@ -29,7 +35,9 @@ __all__ = [
     "EvaluationRecord",
     "EvaluationResult",
     "EvaluationSummary",
+    "MetricComparison",
     "RealMatchEvaluationHarness",
+    "compare_benchmarks",
     "export_evaluation_csv",
     "export_evaluation_jsonl",
     "import_evaluation_csv",
