@@ -6,6 +6,9 @@ from scripts.promotion_gate import run_gate
 from src.evaluation import EvaluationRecord
 
 
+FIXTURE_ROOT = Path(__file__).parent / "fixtures" / "promotion_gate"
+
+
 def _record(case_id: str, *, prism_version: str, git_commit: str) -> EvaluationRecord:
     return EvaluationRecord(
         dataset_schema_version="1.0.0",
@@ -143,3 +146,26 @@ def test_run_gate_returns_reject_code_for_required_metric_regression(tmp_path: P
     decision = json.loads((output / "promotion-decision.json").read_text(encoding="utf-8"))
     assert decision["decision"] == "reject"
     assert decision["release_gate"] == {"allowed": False, "exit_code": 3}
+
+
+def test_frozen_workflow_fixtures_preserve_governed_exit_codes(tmp_path: Path) -> None:
+    baseline = FIXTURE_ROOT / "baseline.jsonl"
+    scenarios = (
+        ("promote-candidate.jsonl", 2, 0, "promote"),
+        ("promote-candidate.jsonl", 3, 2, "hold"),
+        ("reject-candidate.jsonl", 2, 3, "reject"),
+    )
+
+    for candidate_name, minimum_case_count, expected_exit_code, expected_decision in scenarios:
+        output = tmp_path / expected_decision
+        exit_code = run_gate(
+            baseline,
+            FIXTURE_ROOT / candidate_name,
+            output,
+            minimum_case_count=minimum_case_count,
+        )
+
+        assert exit_code == expected_exit_code
+        decision = json.loads((output / "promotion-decision.json").read_text(encoding="utf-8"))
+        assert decision["decision"] == expected_decision
+        assert decision["release_gate"]["exit_code"] == expected_exit_code
