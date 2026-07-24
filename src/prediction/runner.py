@@ -23,9 +23,7 @@ def _require_text(value: str, field_name: str) -> str:
 
 
 def _validated_required_features(model: PredictionModel) -> tuple[str, ...]:
-    required = tuple(
-        _require_text(item, "required_feature") for item in model.required_features
-    )
+    required = tuple(_require_text(item, "required_feature") for item in model.required_features)
     if len(set(required)) != len(required):
         raise ValueError(f"Model {model.model_id} required_features must be unique")
     return required
