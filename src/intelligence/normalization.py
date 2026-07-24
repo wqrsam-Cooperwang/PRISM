@@ -36,10 +36,7 @@ def _freeze_feature_data(
     value: Mapping[str, Mapping[str, Any]],
 ) -> Mapping[str, Mapping[str, Any]]:
     return MappingProxyType(
-        {
-            category: MappingProxyType(dict(values))
-            for category, values in value.items()
-        }
+        {category: MappingProxyType(dict(values)) for category, values in value.items()}
     )
 
 
