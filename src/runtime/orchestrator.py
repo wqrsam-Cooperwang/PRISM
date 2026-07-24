@@ -12,6 +12,7 @@ from src.core.engine import Engine
 from src.decision.engine import DecisionEngine
 from src.domain.models import MatchContext
 from src.rules.engine import RuleEngine
+from src.scoreline.models import ScorelineOutput
 
 _CANONICAL_SEQUENCE = (
     "evidence",
@@ -39,6 +40,7 @@ class RuntimeResult:
     context: MatchContext
     engine_trace: tuple[EngineTrace, ...]
     runtime_version: str = "1.0.0"
+    scoreline: ScorelineOutput | None = None
 
 
 class OrchestrationError(RuntimeError):
