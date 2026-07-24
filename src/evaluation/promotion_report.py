@@ -42,12 +42,15 @@ def promotion_report_payload(result: PromotionResult) -> dict[str, Any]:
 def render_promotion_json(result: PromotionResult) -> str:
     """Render a stable JSON promotion report."""
 
-    return json.dumps(
-        promotion_report_payload(result),
-        sort_keys=True,
-        ensure_ascii=False,
-        indent=2,
-    ) + "\n"
+    return (
+        json.dumps(
+            promotion_report_payload(result),
+            sort_keys=True,
+            ensure_ascii=False,
+            indent=2,
+        )
+        + "\n"
+    )
 
 
 def render_promotion_markdown(result: PromotionResult) -> str:
