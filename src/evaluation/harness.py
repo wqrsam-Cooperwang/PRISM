@@ -128,9 +128,7 @@ class RealMatchEvaluationHarness:
 
         count = len(results)
         scoreline_results = tuple(
-            result.scoreline_top3_hit
-            for result in results
-            if result.scoreline_top3_hit is not None
+            result.scoreline_top3_hit for result in results if result.scoreline_top3_hit is not None
         )
         candidate_results = tuple(
             result.candidate_correct for result in results if result.candidate_correct is not None
@@ -143,18 +141,12 @@ class RealMatchEvaluationHarness:
             top1_accuracy=sum(result.top1_correct for result in results) / count,
             scoreline_available_count=len(scoreline_results),
             scoreline_top3_hit_rate=(
-                None
-                if not scoreline_results
-                else sum(scoreline_results) / len(scoreline_results)
+                None if not scoreline_results else sum(scoreline_results) / len(scoreline_results)
             ),
             candidate_count=len(candidate_results),
             candidate_accuracy=(
-                None
-                if not candidate_results
-                else sum(candidate_results) / len(candidate_results)
+                None if not candidate_results else sum(candidate_results) / len(candidate_results)
             ),
-            mean_overall_confidence=(
-                sum(result.overall_confidence for result in results) / count
-            ),
+            mean_overall_confidence=(sum(result.overall_confidence for result in results) / count),
             results=results,
         )
