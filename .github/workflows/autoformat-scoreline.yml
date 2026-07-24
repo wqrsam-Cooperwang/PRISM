@@ -10,6 +10,7 @@ on:
       - "src/runtime/application.py"
       - "src/runtime/orchestrator.py"
       - "tests/test_scoreline_engine.py"
+      - "tests/test_scoreline_models.py"
       - "tests/test_runtime_application.py"
   workflow_dispatch:
 
@@ -35,20 +36,20 @@ jobs:
 
       - name: Format scoreline files
         run: |
-          ruff format specs/scoreline-engine.md src/scoreline src/runtime/application.py src/runtime/orchestrator.py tests/test_scoreline_engine.py tests/test_runtime_application.py
+          ruff format specs/scoreline-engine.md src/scoreline src/runtime/application.py src/runtime/orchestrator.py tests/test_scoreline_engine.py tests/test_scoreline_models.py tests/test_runtime_application.py
 
       - name: Verify formatting
         run: |
-          ruff format --check specs/scoreline-engine.md src/scoreline src/runtime/application.py src/runtime/orchestrator.py tests/test_scoreline_engine.py tests/test_runtime_application.py
+          ruff format --check specs/scoreline-engine.md src/scoreline src/runtime/application.py src/runtime/orchestrator.py tests/test_scoreline_engine.py tests/test_scoreline_models.py tests/test_runtime_application.py
 
       - name: Commit formatter changes
         run: |
-          if git diff --quiet -- specs/scoreline-engine.md src/scoreline src/runtime/application.py src/runtime/orchestrator.py tests/test_scoreline_engine.py tests/test_runtime_application.py; then
+          if git diff --quiet -- specs/scoreline-engine.md src/scoreline src/runtime/application.py src/runtime/orchestrator.py tests/test_scoreline_engine.py tests/test_scoreline_models.py tests/test_runtime_application.py; then
             echo "No formatting changes required."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add specs/scoreline-engine.md src/scoreline src/runtime/application.py src/runtime/orchestrator.py tests/test_scoreline_engine.py tests/test_runtime_application.py
+          git add specs/scoreline-engine.md src/scoreline src/runtime/application.py src/runtime/orchestrator.py tests/test_scoreline_engine.py tests/test_scoreline_models.py tests/test_runtime_application.py
           git commit -m "style: apply Ruff formatter to scoreline output"
           git push
