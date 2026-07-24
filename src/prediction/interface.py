@@ -12,9 +12,20 @@ from src.features.models import FeatureVector
 class PredictionModel(Protocol):
     """Contract implemented by every independent PRISM prediction model."""
 
-    model_id: str
-    version: str
-    required_features: tuple[str, ...]
+    @property
+    def model_id(self) -> str:
+        """Stable identifier for the independent prediction model."""
+        ...
+
+    @property
+    def version(self) -> str:
+        """Version of the prediction model implementation and parameters."""
+        ...
+
+    @property
+    def required_features(self) -> tuple[str, ...]:
+        """Feature names that must be present before model execution."""
+        ...
 
     def predict(self, features: FeatureVector) -> ModelOutput:
         """Return one governed model output for the supplied feature vector."""
