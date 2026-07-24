@@ -9,6 +9,7 @@ from typing import Any
 from src.decision.engine import DecisionEngine
 from src.report.builder import build_prediction_report
 from src.report.models import PredictionReport
+from src.report.renderer import render_prediction_report_markdown
 from src.runtime.application import analyze_match
 from src.runtime.request import MatchRequest
 
@@ -64,3 +65,21 @@ def analyze_match_report_dict(
         prism_version=prism_version,
         **metadata,
     ).to_dict()
+
+
+def analyze_match_report_markdown(
+    request: MatchRequest,
+    completeness: Mapping[str, float],
+    *,
+    prism_version: str,
+    **metadata: Any,
+) -> str:
+    """Run PRISM once and return the final governed report as deterministic Markdown."""
+
+    report = analyze_match_report(
+        request,
+        completeness,
+        prism_version=prism_version,
+        **metadata,
+    )
+    return render_prediction_report_markdown(report)
