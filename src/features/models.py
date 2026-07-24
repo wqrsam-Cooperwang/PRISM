@@ -40,7 +40,11 @@ class FeatureVector:
                 raise ValueError(f"Feature {name} must be finite")
             validated[name] = numeric
 
-        missing = tuple(sorted(_require_text(item, "missing_feature") for item in self.missing_features))
+        missing = tuple(
+            sorted(
+                _require_text(item, "missing_feature") for item in self.missing_features
+            )
+        )
         if len(set(missing)) != len(missing):
             raise ValueError("missing_features must be unique")
         if set(validated).intersection(missing):
