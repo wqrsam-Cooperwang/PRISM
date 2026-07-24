@@ -1,5 +1,6 @@
 """Application-level runtime orchestration for PRISM."""
 
+from src.runtime.application import analyze_match, analyze_match_dict
 from src.runtime.factory import build_runtime
 from src.runtime.orchestrator import (
     EngineTrace,
@@ -15,6 +16,8 @@ __all__ = [
     "OrchestrationError",
     "PrismOrchestrator",
     "RuntimeResult",
+    "analyze_match",
+    "analyze_match_dict",
     "build_match_context",
     "build_runtime",
 ]
