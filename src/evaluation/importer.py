@@ -100,10 +100,7 @@ def _parse_record(raw: Mapping[str, Any]) -> EvaluationRecord:
             values[field_name] = str(value)
 
     if values["dataset_schema_version"] != DATASET_SCHEMA_VERSION:
-        raise ValueError(
-            "unsupported dataset_schema_version: "
-            f"{values['dataset_schema_version']}"
-        )
+        raise ValueError(f"unsupported dataset_schema_version: {values['dataset_schema_version']}")
     return EvaluationRecord(**values)
 
 
@@ -181,14 +178,10 @@ def load_benchmark(records: Iterable[EvaluationRecord]) -> BenchmarkSummary:
         raise ValueError("benchmark must contain at least one record")
 
     scoreline_results = tuple(
-        record.scoreline_top3_hit
-        for record in items
-        if record.scoreline_top3_hit is not None
+        record.scoreline_top3_hit for record in items if record.scoreline_top3_hit is not None
     )
     candidate_results = tuple(
-        record.candidate_correct
-        for record in items
-        if record.candidate_correct is not None
+        record.candidate_correct for record in items if record.candidate_correct is not None
     )
     count = len(items)
     return BenchmarkSummary(
