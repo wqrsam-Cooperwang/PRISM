@@ -194,9 +194,7 @@ def test_all_usable_categories_remain_available_for_model_features() -> None:
 
     normalized = normalize_intelligence_bundle(bundle, _model_outputs())
 
-    assert normalized.model_feature_data["recent_form"] == {
-        "home": {"points_last_5": 11}
-    }
+    assert normalized.model_feature_data["recent_form"] == {"home": {"points_last_5": 11}}
     assert normalized.model_feature_data["head_to_head"] == {"meetings_last_5": 5}
     assert normalized.model_feature_data["motivation_context"] == {
         "home": {"relegation_pressure": False}
@@ -254,10 +252,7 @@ def test_invalid_usable_elo_fails_closed() -> None:
     observations = tuple(
         item
         for item in _full_observations()
-        if not (
-            item.category == IntelligenceCategory.TEAM_STRENGTH
-            and item.subject == "home"
-        )
+        if not (item.category == IntelligenceCategory.TEAM_STRENGTH and item.subject == "home")
     ) + (
         _observation(
             "bad-elo",
