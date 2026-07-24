@@ -70,7 +70,9 @@ class AvailabilityScheduleAdapter:
         envelope: SourceEnvelope,
     ) -> tuple[Observation, ...]:
         if envelope.adapter_id != self.adapter_id:
-            raise ValueError("SourceEnvelope adapter_id does not match availability/schedule adapter")
+            raise ValueError(
+                "SourceEnvelope adapter_id does not match availability/schedule adapter"
+            )
 
         payload = envelope.payload
         _validate_optional_team_id(payload, "home_team_id", target.home_team_id)
