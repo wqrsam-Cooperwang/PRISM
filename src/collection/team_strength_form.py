@@ -41,9 +41,10 @@ def _finite_numeric(value: Any, field_name: str) -> float:
 def _points_last_5(value: Any, field_name: str) -> int:
     if isinstance(value, bool) or not isinstance(value, int):
         raise ValueError(f"{field_name} must be an integer from 0 through 15")
-    if not 0 <= value <= 15:
+    points: int = value
+    if not 0 <= points <= 15:
         raise ValueError(f"{field_name} must be an integer from 0 through 15")
-    return value
+    return points
 
 
 def _team_payload(payload: Mapping[str, Any], side: str) -> Mapping[str, Any]:
