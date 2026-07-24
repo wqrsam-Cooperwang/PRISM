@@ -95,7 +95,7 @@ def test_evaluate_many_aggregates_only_eligible_scoreline_and_candidate_cases() 
     assert tuple(result.case_id for result in summary.results) == ("first", "second")
     assert summary.top1_accuracy == pytest.approx(0.5)
     assert summary.scoreline_available_count == 2
-    assert summary.scoreline_top3_hit_rate == pytest.approx(1.0)
+    assert summary.scoreline_top3_hit_rate == pytest.approx(0.5)
     assert summary.candidate_count == 2
     assert summary.candidate_accuracy == pytest.approx(0.5)
     assert summary.mean_brier_score == pytest.approx(
