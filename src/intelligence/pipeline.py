@@ -212,9 +212,7 @@ def _assess_categories(
             and item.value is not None
         )
         covered = bool(usable)
-        score = (
-            sum(item.confidence for item in usable) / len(usable) if usable else 0.0
-        )
+        score = sum(item.confidence for item in usable) / len(usable) if usable else 0.0
         stale = bool(category_observations) and all(
             _freshness_factor(item)[1] for item in category_observations
         )
@@ -240,9 +238,7 @@ def _readiness(
 ) -> IntelligenceReadiness:
     by_category = {item.category: item for item in assessments}
     missing = tuple(
-        category
-        for category in _REQUIRED_CATEGORIES
-        if not by_category[category].covered
+        category for category in _REQUIRED_CATEGORIES if not by_category[category].covered
     )
     stale = tuple(item.category for item in assessments if item.stale)
     conflicted = tuple(
