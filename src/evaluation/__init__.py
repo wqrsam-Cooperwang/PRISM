@@ -5,6 +5,12 @@ from src.evaluation.comparison import (
     MetricComparison,
     compare_benchmarks,
 )
+from src.evaluation.comparison_report import (
+    COMPARISON_REPORT_VERSION,
+    comparison_report_payload,
+    render_comparison_json,
+    render_comparison_markdown,
+)
 from src.evaluation.dataset import (
     DATASET_SCHEMA_VERSION,
     EXPORT_VERSION,
@@ -25,6 +31,7 @@ from src.evaluation.importer import (
 from src.evaluation.models import EvaluationCase, EvaluationResult, EvaluationSummary
 
 __all__ = [
+    "COMPARISON_REPORT_VERSION",
     "DATASET_SCHEMA_VERSION",
     "EXPORT_VERSION",
     "BenchmarkComparison",
@@ -38,10 +45,13 @@ __all__ = [
     "MetricComparison",
     "RealMatchEvaluationHarness",
     "compare_benchmarks",
+    "comparison_report_payload",
     "export_evaluation_csv",
     "export_evaluation_jsonl",
     "import_evaluation_csv",
     "import_evaluation_jsonl",
     "load_benchmark",
     "records_from_summary",
+    "render_comparison_json",
+    "render_comparison_markdown",
 ]
