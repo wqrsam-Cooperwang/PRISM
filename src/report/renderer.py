@@ -36,8 +36,7 @@ def _rule_lines(rule_outputs: tuple[Mapping[str, Any], ...]) -> str:
     if not rule_outputs:
         return "- None"
     return "\n".join(
-        f"- {json.dumps(dict(item), sort_keys=True, ensure_ascii=False)}"
-        for item in rule_outputs
+        f"- {json.dumps(dict(item), sort_keys=True, ensure_ascii=False)}" for item in rule_outputs
     )
 
 
