@@ -215,9 +215,7 @@ def test_close_strong_conflict_remains_unresolved() -> None:
 
 def test_missing_required_category_downgrades_readiness_without_defaults() -> None:
     observations = tuple(
-        item
-        for item in _required_observations()
-        if item.category != IntelligenceCategory.MARKET
+        item for item in _required_observations() if item.category != IntelligenceCategory.MARKET
     )
 
     bundle = build_intelligence_bundle(_target(), observations, collected_at=NOW)
