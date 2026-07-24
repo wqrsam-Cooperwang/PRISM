@@ -32,6 +32,40 @@ _CONTEXT_CATEGORY_FIELDS: Mapping[IntelligenceCategory, str] = MappingProxyType(
 )
 
 
+def _freeze_feature_data(
+    value: Mapping[str, Mapping[str, Any]],
+) -> Mapping[str, Mapping[str, Any]]:
+    return MappingProxyType(
+        {
+            category: MappingProxyType(dict(values))
+            for category, values in value.items()
+        }
+    )
+
+
+@dataclass(frozen=True)
+class NormalizedIntelligenceFacts:
+    """Pre-model normalized intelligence used to construct deterministic features."""
+
+    evidence_completeness: Mapping[str, float]
+    model_feature_data: Mapping[str, Mapping[str, Any]]
+    intelligence_fingerprint: str
+    readiness: ReadinessLevel
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "evidence_completeness",
+            MappingProxyType(dict(self.evidence_completeness)),
+        )
+        object.__setattr__(
+            self,
+            "model_feature_data",
+            _freeze_feature_data(self.model_feature_data),
+        )
+        object.__setattr__(self, "readiness", ReadinessLevel(self.readiness))
+
+
 @dataclass(frozen=True)
 class NormalizedMatchInput:
     """Bridge object consumed by the existing context builder and runtime factory."""
@@ -51,12 +85,7 @@ class NormalizedMatchInput:
         object.__setattr__(
             self,
             "model_feature_data",
-            MappingProxyType(
-                {
-                    category: MappingProxyType(dict(values))
-                    for category, values in self.model_feature_data.items()
-                }
-            ),
+            _freeze_feature_data(self.model_feature_data),
         )
         object.__setattr__(self, "readiness", ReadinessLevel(self.readiness))
 
@@ -157,6 +186,23 @@ def _evidence_completeness(bundle: IntelligenceBundle) -> dict[str, float]:
     }
 
 
+def normalize_intelligence_facts(bundle: IntelligenceBundle) -> NormalizedIntelligenceFacts:
+    """Normalize verified intelligence for feature construction before model execution."""
+
+    claims = _usable_claims(bundle)
+    feature_data = {
+        category.value: payload
+        for category in IntelligenceCategory
+        if (payload := _category_payload(claims, category))
+    }
+    return NormalizedIntelligenceFacts(
+        evidence_completeness=_evidence_completeness(bundle),
+        model_feature_data=feature_data,
+        intelligence_fingerprint=bundle.fingerprint,
+        readiness=bundle.readiness.level,
+    )
+
+
 def normalize_intelligence_bundle(
     bundle: IntelligenceBundle,
     model_outputs: tuple[ModelOutput, ...],
@@ -166,14 +212,9 @@ def normalize_intelligence_bundle(
     if not model_outputs:
         raise ValueError("Normalization requires at least one model output")
 
+    facts = normalize_intelligence_facts(bundle)
     claims = _usable_claims(bundle)
     home_elo_rating, away_elo_rating = _elo_ratings(bundle, claims)
-
-    feature_data = {
-        category.value: _category_payload(claims, category)
-        for category in IntelligenceCategory
-        if _category_payload(claims, category)
-    }
     context_payloads = {
         field_name: _category_payload(claims, category)
         for category, field_name in _CONTEXT_CATEGORY_FIELDS.items()
@@ -203,8 +244,8 @@ def normalize_intelligence_bundle(
     )
     return NormalizedMatchInput(
         request=request,
-        evidence_completeness=_evidence_completeness(bundle),
-        model_feature_data=feature_data,
-        intelligence_fingerprint=bundle.fingerprint,
-        readiness=bundle.readiness.level,
+        evidence_completeness=facts.evidence_completeness,
+        model_feature_data=facts.model_feature_data,
+        intelligence_fingerprint=facts.intelligence_fingerprint,
+        readiness=facts.readiness,
     )
