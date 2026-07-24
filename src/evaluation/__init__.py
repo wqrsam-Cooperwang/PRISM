@@ -29,11 +29,18 @@ from src.evaluation.importer import (
     load_benchmark,
 )
 from src.evaluation.models import EvaluationCase, EvaluationResult, EvaluationSummary
+from src.evaluation.promotion import (
+    PROMOTION_POLICY_VERSION,
+    PromotionPolicy,
+    PromotionResult,
+    evaluate_promotion,
+)
 
 __all__ = [
     "COMPARISON_REPORT_VERSION",
     "DATASET_SCHEMA_VERSION",
     "EXPORT_VERSION",
+    "PROMOTION_POLICY_VERSION",
     "BenchmarkComparison",
     "BenchmarkSummary",
     "DatasetExport",
@@ -43,9 +50,12 @@ __all__ = [
     "EvaluationResult",
     "EvaluationSummary",
     "MetricComparison",
+    "PromotionPolicy",
+    "PromotionResult",
     "RealMatchEvaluationHarness",
     "compare_benchmarks",
     "comparison_report_payload",
+    "evaluate_promotion",
     "export_evaluation_csv",
     "export_evaluation_jsonl",
     "import_evaluation_csv",
