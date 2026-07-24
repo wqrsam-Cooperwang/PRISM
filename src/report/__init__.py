@@ -1,6 +1,10 @@
 """Governed read-only prediction reporting for PRISM."""
 
-from src.report.application import analyze_match_report, analyze_match_report_dict
+from src.report.application import (
+    analyze_match_report,
+    analyze_match_report_dict,
+    analyze_match_report_markdown,
+)
 from src.report.builder import build_prediction_report, build_prediction_report_dict
 from src.report.models import (
     AdjustmentReport,
@@ -31,6 +35,7 @@ __all__ = [
     "ScorelineReport",
     "analyze_match_report",
     "analyze_match_report_dict",
+    "analyze_match_report_markdown",
     "build_prediction_report",
     "build_prediction_report_dict",
     "render_prediction_report_markdown",
