@@ -13,7 +13,9 @@ from src.domain.models import (
 from src.scoreline.engine import ScorelineEngine
 
 
-def context_with_models(models: tuple[ModelOutput, ...], *, with_decision: bool = True) -> MatchContext:
+def context_with_models(
+    models: tuple[ModelOutput, ...], *, with_decision: bool = True
+) -> MatchContext:
     return MatchContext(
         session=AnalysisSession(
             session_id="scoreline-session",
@@ -91,9 +93,7 @@ def test_models_without_complete_expected_goals_are_not_used() -> None:
 
 
 def test_invalid_expected_goals_are_rejected() -> None:
-    context = context_with_models(
-        (ModelOutput("invalid", "1.0.0", 0.5, 0.3, 0.2, -0.1, 0.9),)
-    )
+    context = context_with_models((ModelOutput("invalid", "1.0.0", 0.5, 0.3, 0.2, -0.1, 0.9),))
 
     with pytest.raises(ValueError, match="finite and non-negative"):
         ScorelineEngine().run(context)

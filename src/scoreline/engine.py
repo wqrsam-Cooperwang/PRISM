@@ -46,7 +46,9 @@ class ScorelineEngine:
         away_probs = tuple(self._poisson_probability(away_xg, goals) for goals in goal_range)
 
         candidates = tuple(
-            ScorelineCandidate(home_goals, away_goals, home_probs[home_goals] * away_probs[away_goals])
+            ScorelineCandidate(
+                home_goals, away_goals, home_probs[home_goals] * away_probs[away_goals]
+            )
             for home_goals in goal_range
             for away_goals in goal_range
         )
