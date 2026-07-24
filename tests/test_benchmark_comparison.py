@@ -128,8 +128,7 @@ def test_compare_benchmarks_reports_metric_deltas_and_improvement() -> None:
 
 def test_any_core_regression_makes_overall_verdict_regressed() -> None:
     candidate = tuple(
-        replace(record, brier_score=record.brier_score + 0.20)
-        for record in _candidate_improved()
+        replace(record, brier_score=record.brier_score + 0.20) for record in _candidate_improved()
     )
 
     comparison = compare_benchmarks(_baseline(), candidate)
@@ -153,9 +152,7 @@ def test_tolerance_prevents_meaningless_float_differences_from_winning() -> None
     )
 
     comparison = compare_benchmarks(_baseline(), candidate, tolerance=1e-6)
-    comparable = tuple(
-        metric for metric in comparison.metrics if metric.direction != "descriptive"
-    )
+    comparable = tuple(metric for metric in comparison.metrics if metric.direction != "descriptive")
 
     assert all(metric.status == "tie" for metric in comparable)
     assert comparison.overall_verdict == "tie"
