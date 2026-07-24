@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from math import exp, factorial
+from math import exp, factorial, isfinite
 
 from src.domain.models import MatchContext
 from src.scoreline.models import ScorelineCandidate, ScorelineOutput
@@ -33,15 +33,22 @@ class ScorelineEngine:
                 ),
             )
 
+        for model in eligible:
+            home_xg = float(model.expected_home_goals)
+            away_xg = float(model.expected_away_goals)
+            if not isfinite(home_xg) or not isfinite(away_xg) or home_xg < 0.0 or away_xg < 0.0:
+                raise ValueError("Scoreline expected-goal inputs must be finite and non-negative")
+
         home_xg = sum(float(model.expected_home_goals) for model in eligible) / len(eligible)
         away_xg = sum(float(model.expected_away_goals) for model in eligible) / len(eligible)
-        home_probs = tuple(self._poisson_probability(home_xg, goals) for goals in range(11))
-        away_probs = tuple(self._poisson_probability(away_xg, goals) for goals in range(11))
+        goal_range = range(self.max_goals + 1)
+        home_probs = tuple(self._poisson_probability(home_xg, goals) for goals in goal_range)
+        away_probs = tuple(self._poisson_probability(away_xg, goals) for goals in goal_range)
 
         candidates = tuple(
             ScorelineCandidate(home_goals, away_goals, home_probs[home_goals] * away_probs[away_goals])
-            for home_goals in range(11)
-            for away_goals in range(11)
+            for home_goals in goal_range
+            for away_goals in goal_range
         )
         ranked = tuple(
             sorted(
