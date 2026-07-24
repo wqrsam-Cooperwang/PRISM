@@ -35,12 +35,20 @@ from src.evaluation.promotion import (
     PromotionResult,
     evaluate_promotion,
 )
+from src.evaluation.promotion_report import (
+    PROMOTION_REPORT_VERSION,
+    promotion_report_payload,
+    release_gate_exit_code,
+    render_promotion_json,
+    render_promotion_markdown,
+)
 
 __all__ = [
     "COMPARISON_REPORT_VERSION",
     "DATASET_SCHEMA_VERSION",
     "EXPORT_VERSION",
     "PROMOTION_POLICY_VERSION",
+    "PROMOTION_REPORT_VERSION",
     "BenchmarkComparison",
     "BenchmarkSummary",
     "DatasetExport",
@@ -61,7 +69,11 @@ __all__ = [
     "import_evaluation_csv",
     "import_evaluation_jsonl",
     "load_benchmark",
+    "promotion_report_payload",
     "records_from_summary",
+    "release_gate_exit_code",
     "render_comparison_json",
     "render_comparison_markdown",
+    "render_promotion_json",
+    "render_promotion_markdown",
 ]
