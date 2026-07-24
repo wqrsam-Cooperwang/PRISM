@@ -56,10 +56,12 @@ def _metrics_by_name(comparison: BenchmarkComparison) -> dict[str, MetricCompari
 
 def evaluate_promotion(
     comparison: BenchmarkComparison,
-    policy: PromotionPolicy = PromotionPolicy(),
+    policy: PromotionPolicy | None = None,
 ) -> PromotionResult:
     """Evaluate whether a governed benchmark candidate may replace its baseline."""
 
+    if policy is None:
+        policy = PromotionPolicy()
     _validate_policy(policy)
     metrics = _metrics_by_name(comparison)
     missing = tuple(name for name in policy.required_metrics if name not in metrics)
