@@ -187,21 +187,13 @@ def _assess_categories(
     assessments: list[CategoryAssessment] = []
     for category in IntelligenceCategory:
         if category == IntelligenceCategory.IDENTITY:
-            assessments.append(
-                CategoryAssessment(category, True, 1.0, 1, 0, 0, False)
-            )
+            assessments.append(CategoryAssessment(category, True, 1.0, 1, 0, 0, False))
             continue
         category_claims = tuple(item for item in claims if item.category == category)
-        category_observations = tuple(
-            item for item in observations if item.category == category
-        )
+        category_observations = tuple(item for item in observations if item.category == category)
         verified = sum(item.status == VerificationStatus.VERIFIED for item in category_claims)
-        provisional = sum(
-            item.status == VerificationStatus.PROVISIONAL for item in category_claims
-        )
-        conflicted = sum(
-            item.status == VerificationStatus.CONFLICTED for item in category_claims
-        )
+        provisional = sum(item.status == VerificationStatus.PROVISIONAL for item in category_claims)
+        conflicted = sum(item.status == VerificationStatus.CONFLICTED for item in category_claims)
         usable = tuple(
             item
             for item in category_claims
