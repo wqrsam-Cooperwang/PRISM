@@ -7,11 +7,14 @@ from src.runtime.orchestrator import (
     PrismOrchestrator,
     RuntimeResult,
 )
+from src.runtime.request import MatchRequest, build_match_context
 
 __all__ = [
     "EngineTrace",
+    "MatchRequest",
     "OrchestrationError",
     "PrismOrchestrator",
     "RuntimeResult",
+    "build_match_context",
     "build_runtime",
 ]
