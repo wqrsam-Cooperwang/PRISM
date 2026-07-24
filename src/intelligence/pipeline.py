@@ -77,15 +77,23 @@ def _category_source_cap(observation: Observation) -> float:
         return 0.55
     if source_type == SourceType.COMMUNITY:
         return 0.45
-    if category == IntelligenceCategory.AVAILABILITY and source_type == SourceType.AGGREGATOR:
+    if (
+        category == IntelligenceCategory.AVAILABILITY
+        and source_type == SourceType.AGGREGATOR
+    ):
         return 0.65
     return 1.0
 
 
 def _effective_weight(observation: Observation) -> tuple[float, bool]:
     freshness, stale = _freshness_factor(observation)
-    provider_confidence = observation.confidence if observation.confidence is not None else 1.0
-    authority = min(_SOURCE_WEIGHT[observation.source.source_type], _category_source_cap(observation))
+    provider_confidence = (
+        observation.confidence if observation.confidence is not None else 1.0
+    )
+    authority = min(
+        _SOURCE_WEIGHT[observation.source.source_type],
+        _category_source_cap(observation),
+    )
     return authority * freshness * provider_confidence, stale
 
 
@@ -106,7 +114,9 @@ def _verify_group(observations: tuple[Observation, ...]) -> VerifiedClaim:
     share = winner_weight / total if total > 0 else 0.0
     conflict_ratio = second_weight / winner_weight if winner_weight > 0 else 1.0
 
-    winner_members = tuple(sorted(members[winner_key], key=lambda item: item.observation_id))
+    winner_members = tuple(
+        sorted(members[winner_key], key=lambda item: item.observation_id)
+    )
     winner_ids = tuple(item.observation_id for item in winner_members)
     conflict_ids = tuple(
         sorted(
@@ -150,65 +160,113 @@ def _verify_group(observations: tuple[Observation, ...]) -> VerifiedClaim:
     )
 
 
-def verify_observations(observations: tuple[Observation, ...]) -> tuple[VerifiedClaim, ...]:
+def verify_observations(
+    observations: tuple[Observation, ...],
+) -> tuple[VerifiedClaim, ...]:
     """Group and deterministically verify observations into auditable claims."""
 
     observation_ids = [item.observation_id for item in observations]
     if len(set(observation_ids)) != len(observation_ids):
         raise ValueError("observation_id values must be unique")
 
-    grouped: dict[tuple[IntelligenceCategory, str | None, str], list[Observation]] = defaultdict(list)
+    grouped: dict[
+        tuple[IntelligenceCategory, str | None, str], list[Observation]
+    ] = defaultdict(list)
     for observation in observations:
-        grouped[(observation.category, observation.subject, observation.claim_key)].append(observation)
+        grouped[
+            (observation.category, observation.subject, observation.claim_key)
+        ].append(observation)
 
     claims = [
         _verify_group(tuple(sorted(group, key=lambda item: item.observation_id)))
-        for _, group in sorted(grouped.items(), key=lambda item: (item[0][0].value, item[0][1] or "", item[0][2]))
+        for _, group in sorted(
+            grouped.items(),
+            key=lambda item: (item[0][0].value, item[0][1] or "", item[0][2]),
+        )
     ]
     return tuple(claims)
 
 
 def _assess_categories(
-    observations: tuple[Observation, ...], claims: tuple[VerifiedClaim, ...]
+    observations: tuple[Observation, ...],
+    claims: tuple[VerifiedClaim, ...],
 ) -> tuple[CategoryAssessment, ...]:
     assessments: list[CategoryAssessment] = []
     for category in IntelligenceCategory:
         if category == IntelligenceCategory.IDENTITY:
-            assessments.append(CategoryAssessment(category, True, 1.0, 1, 0, 0, False))
+            assessments.append(
+                CategoryAssessment(category, True, 1.0, 1, 0, 0, False)
+            )
             continue
         category_claims = tuple(item for item in claims if item.category == category)
-        category_observations = tuple(item for item in observations if item.category == category)
-        verified = sum(item.status == VerificationStatus.VERIFIED for item in category_claims)
-        provisional = sum(item.status == VerificationStatus.PROVISIONAL for item in category_claims)
-        conflicted = sum(item.status == VerificationStatus.CONFLICTED for item in category_claims)
+        category_observations = tuple(
+            item for item in observations if item.category == category
+        )
+        verified = sum(
+            item.status == VerificationStatus.VERIFIED for item in category_claims
+        )
+        provisional = sum(
+            item.status == VerificationStatus.PROVISIONAL for item in category_claims
+        )
+        conflicted = sum(
+            item.status == VerificationStatus.CONFLICTED for item in category_claims
+        )
         usable = tuple(
             item
             for item in category_claims
-            if item.status in {VerificationStatus.VERIFIED, VerificationStatus.PROVISIONAL}
+            if item.status
+            in {VerificationStatus.VERIFIED, VerificationStatus.PROVISIONAL}
             and item.value is not None
         )
         covered = bool(usable)
-        score = sum(item.confidence for item in usable) / len(usable) if usable else 0.0
-        stale = bool(category_observations) and all(_freshness_factor(item)[1] for item in category_observations)
+        score = (
+            sum(item.confidence for item in usable) / len(usable) if usable else 0.0
+        )
+        stale = bool(category_observations) and all(
+            _freshness_factor(item)[1] for item in category_observations
+        )
         if stale:
             score *= 0.6
         assessments.append(
-            CategoryAssessment(category, covered, score, verified, provisional, conflicted, stale)
+            CategoryAssessment(
+                category,
+                covered,
+                score,
+                verified,
+                provisional,
+                conflicted,
+                stale,
+            )
         )
     return tuple(assessments)
 
 
-def _readiness(assessments: tuple[CategoryAssessment, ...], claims: tuple[VerifiedClaim, ...]) -> IntelligenceReadiness:
+def _readiness(
+    assessments: tuple[CategoryAssessment, ...],
+    claims: tuple[VerifiedClaim, ...],
+) -> IntelligenceReadiness:
     by_category = {item.category: item for item in assessments}
-    missing = tuple(category for category in _REQUIRED_CATEGORIES if not by_category[category].covered)
+    missing = tuple(
+        category
+        for category in _REQUIRED_CATEGORIES
+        if not by_category[category].covered
+    )
     stale = tuple(item.category for item in assessments if item.stale)
     conflicted = tuple(
-        sorted(f"{item.category.value}:{item.subject or '-'}:{item.claim_key}" for item in claims if item.status == VerificationStatus.CONFLICTED)
+        sorted(
+            f"{item.category.value}:{item.subject or '-'}:{item.claim_key}"
+            for item in claims
+            if item.status == VerificationStatus.CONFLICTED
+        )
     )
-    required_scores = tuple(by_category[category].score for category in _REQUIRED_CATEGORIES)
+    required_scores = tuple(
+        by_category[category].score for category in _REQUIRED_CATEGORIES
+    )
     score = sum(required_scores) / len(required_scores)
     optional_covered = sum(
-        item.covered for item in assessments if item.category not in _REQUIRED_CATEGORIES
+        item.covered
+        for item in assessments
+        if item.category not in _REQUIRED_CATEGORIES
     )
     warnings: list[str] = []
     if missing:
@@ -218,12 +276,18 @@ def _readiness(assessments: tuple[CategoryAssessment, ...], claims: tuple[Verifi
     if conflicted:
         warnings.append("one or more claims have unresolved conflicts")
 
-    non_identity_observations = sum(item.category != IntelligenceCategory.IDENTITY for item in assessments if item.covered)
-    if non_identity_observations == 0:
+    non_identity_covered = sum(
+        item.category != IntelligenceCategory.IDENTITY
+        for item in assessments
+        if item.covered
+    )
+    if non_identity_covered == 0:
         level = ReadinessLevel.REJECTED
     elif missing:
         level = ReadinessLevel.LIMITED
-    elif conflicted or stale or any(by_category[category].provisional_claims for category in _REQUIRED_CATEGORIES):
+    elif conflicted or stale or any(
+        by_category[category].provisional_claims for category in _REQUIRED_CATEGORIES
+    ):
         level = ReadinessLevel.STANDARD
     elif optional_covered >= 3 and score >= 0.75:
         level = ReadinessLevel.DEEP
@@ -273,11 +337,13 @@ def build_intelligence_bundle(
     *,
     collected_at: datetime,
 ) -> IntelligenceBundle:
-    """Build a frozen, deterministic intelligence bundle from collected observations."""
+    """Build a frozen, deterministic intelligence bundle from observations."""
 
     if collected_at.tzinfo is None or collected_at.utcoffset() is None:
         raise ValueError("collected_at must be timezone-aware")
-    ordered_observations = tuple(sorted(observations, key=lambda item: item.observation_id))
+    ordered_observations = tuple(
+        sorted(observations, key=lambda item: item.observation_id)
+    )
     if any(item.collected_at > collected_at for item in ordered_observations):
         raise ValueError("bundle collected_at cannot precede observation collection")
     claims = verify_observations(ordered_observations)
