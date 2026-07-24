@@ -259,14 +259,10 @@ def _readiness(
             if item.status == VerificationStatus.CONFLICTED
         )
     )
-    required_scores = tuple(
-        by_category[category].score for category in _REQUIRED_CATEGORIES
-    )
+    required_scores = tuple(by_category[category].score for category in _REQUIRED_CATEGORIES)
     score = sum(required_scores) / len(required_scores)
     optional_covered = sum(
-        item.covered
-        for item in assessments
-        if item.category not in _REQUIRED_CATEGORIES
+        item.covered for item in assessments if item.category not in _REQUIRED_CATEGORIES
     )
     warnings: list[str] = []
     if missing:
@@ -277,16 +273,16 @@ def _readiness(
         warnings.append("one or more claims have unresolved conflicts")
 
     non_identity_covered = sum(
-        item.category != IntelligenceCategory.IDENTITY
-        for item in assessments
-        if item.covered
+        item.category != IntelligenceCategory.IDENTITY for item in assessments if item.covered
     )
     if non_identity_covered == 0:
         level = ReadinessLevel.REJECTED
     elif missing:
         level = ReadinessLevel.LIMITED
-    elif conflicted or stale or any(
-        by_category[category].provisional_claims for category in _REQUIRED_CATEGORIES
+    elif (
+        conflicted
+        or stale
+        or any(by_category[category].provisional_claims for category in _REQUIRED_CATEGORIES)
     ):
         level = ReadinessLevel.STANDARD
     elif optional_covered >= 3 and score >= 0.75:
@@ -341,9 +337,7 @@ def build_intelligence_bundle(
 
     if collected_at.tzinfo is None or collected_at.utcoffset() is None:
         raise ValueError("collected_at must be timezone-aware")
-    ordered_observations = tuple(
-        sorted(observations, key=lambda item: item.observation_id)
-    )
+    ordered_observations = tuple(sorted(observations, key=lambda item: item.observation_id))
     if any(item.collected_at > collected_at for item in ordered_observations):
         raise ValueError("bundle collected_at cannot precede observation collection")
     claims = verify_observations(ordered_observations)
