@@ -164,7 +164,9 @@ def compare_benchmarks(
     )
 
     core_statuses = tuple(
-        metric.status for metric in metrics if metric.direction != "descriptive" and metric.status != "not_comparable"
+        metric.status
+        for metric in metrics
+        if metric.direction != "descriptive" and metric.status != "not_comparable"
     )
     if "regressed" in core_statuses:
         verdict: ComparisonVerdict = "regressed"
