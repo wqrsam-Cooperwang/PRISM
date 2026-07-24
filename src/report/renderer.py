@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from typing import Any
 
 from src.report.models import PredictionReport
@@ -32,7 +32,7 @@ def _lines(values: Iterable[str]) -> str:
     return "\n".join(f"- {item}" for item in items)
 
 
-def _rule_lines(rule_outputs: tuple[dict[str, Any] | Any, ...]) -> str:
+def _rule_lines(rule_outputs: tuple[Mapping[str, Any], ...]) -> str:
     if not rule_outputs:
         return "- None"
     return "\n".join(
@@ -102,11 +102,12 @@ def render_prediction_report_markdown(report: PredictionReport) -> str:
     if report.decision is None:
         sections.append("- Unavailable")
     else:
+        expected_value = _percent(report.decision.expected_value, signed=True)
         sections.extend(
             [
                 f"- Action: {report.decision.action}",
                 f"- Selected market: {_text(report.decision.selected_market)}",
-                f"- Expected value: {_percent(report.decision.expected_value, signed=True)}",
+                f"- Expected value: {expected_value}",
                 f"- Risk level: {_text(report.decision.risk_level)}",
                 "- Rationale:",
                 _lines(report.decision.rationale),
@@ -159,6 +160,7 @@ def render_prediction_report_markdown(report: PredictionReport) -> str:
         )
 
     provenance = report.provenance
+    ai_models = ", ".join(provenance.ai_models) if provenance.ai_models else "None"
     sections.extend(
         [
             "",
@@ -172,7 +174,7 @@ def render_prediction_report_markdown(report: PredictionReport) -> str:
             f"- Rule version: {_text(provenance.rule_version)}",
             f"- Model version: {_text(provenance.model_version)}",
             f"- Prompt version: {_text(provenance.prompt_version)}",
-            f"- AI models: {', '.join(provenance.ai_models) if provenance.ai_models else 'None'}",
+            f"- AI models: {ai_models}",
             "- Engine trace:",
         ]
     )
