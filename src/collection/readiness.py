@@ -123,8 +123,12 @@ def evaluate_collection_readiness(
     """Evaluate whether verified collection output may enter baseline prediction."""
 
     coverage = _coverage(bundle)
-    covered_core = tuple(category for category in _CORE_CATEGORIES if coverage.get(category, False))
-    missing_core = tuple(category for category in _CORE_CATEGORIES if not coverage.get(category, False))
+    covered_core = tuple(
+        category for category in _CORE_CATEGORIES if coverage.get(category, False)
+    )
+    missing_core = tuple(
+        category for category in _CORE_CATEGORIES if not coverage.get(category, False)
+    )
     covered_optional = tuple(
         category for category in _OPTIONAL_CATEGORIES if coverage.get(category, False)
     )
