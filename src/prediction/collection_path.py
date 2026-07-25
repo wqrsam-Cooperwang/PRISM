@@ -8,6 +8,11 @@ from datetime import datetime
 
 from src.collection.interface import ObservationAdapter
 from src.collection.models import SourceEnvelope
+from src.collection.readiness import (
+    CollectionGateDecision,
+    CollectionReadinessGateResult,
+    evaluate_collection_readiness,
+)
 from src.collection.runner import collect_observations
 from src.intelligence.models import IntelligenceBundle, MatchTarget, Observation
 from src.intelligence.pipeline import build_intelligence_bundle
@@ -20,6 +25,7 @@ class CollectedPredictionPathResult:
 
     observations: tuple[Observation, ...]
     intelligence_bundle: IntelligenceBundle
+    collection_gate: CollectionReadinessGateResult
     prediction: PredictionPathResult
 
 
@@ -37,6 +43,11 @@ def run_collected_prediction_path(
 
     observations = collect_observations(target, adapters, envelopes)
     bundle = build_intelligence_bundle(target, observations, collected_at=collected_at)
+    gate = evaluate_collection_readiness(bundle)
+    if gate.decision == CollectionGateDecision.REJECTED:
+        reasons = "; ".join(gate.reasons) or "collection readiness gate rejected prediction"
+        raise ValueError(f"Collection readiness gate rejected prediction: {reasons}")
+
     prediction = run_baseline_prediction_path(
         bundle,
         prism_version=prism_version,
@@ -46,5 +57,6 @@ def run_collected_prediction_path(
     return CollectedPredictionPathResult(
         observations=observations,
         intelligence_bundle=bundle,
+        collection_gate=gate,
         prediction=prediction,
     )
