@@ -1,6 +1,10 @@
 """Public automated collection API for PRISM."""
 
 from src.collection.availability_schedule import AvailabilityScheduleAdapter
+from src.collection.degraded_governance import (
+    apply_collection_governance,
+    collection_governance_effects,
+)
 from src.collection.fixture import FixtureObservationAdapter
 from src.collection.interface import ObservationAdapter
 from src.collection.market import MarketOdds1X2Adapter
@@ -24,6 +28,8 @@ __all__ = [
     "SourceEnvelope",
     "TeamStrengthFormAdapter",
     "WeatherLineupAdapter",
+    "apply_collection_governance",
     "collect_observations",
+    "collection_governance_effects",
     "evaluate_collection_readiness",
 ]
