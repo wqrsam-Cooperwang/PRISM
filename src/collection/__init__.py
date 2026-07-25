@@ -7,6 +7,7 @@ from src.collection.market import MarketOdds1X2Adapter
 from src.collection.models import SourceEnvelope
 from src.collection.runner import collect_observations
 from src.collection.team_strength_form import TeamStrengthFormAdapter
+from src.collection.weather_lineup import WeatherLineupAdapter
 
 __all__ = [
     "AvailabilityScheduleAdapter",
@@ -15,5 +16,6 @@ __all__ = [
     "ObservationAdapter",
     "SourceEnvelope",
     "TeamStrengthFormAdapter",
+    "WeatherLineupAdapter",
     "collect_observations",
 ]
