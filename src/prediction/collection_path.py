@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime
 
+from src.collection.degraded_governance import apply_collection_governance
 from src.collection.interface import ObservationAdapter
 from src.collection.models import SourceEnvelope
 from src.collection.readiness import (
@@ -53,6 +54,10 @@ def run_collected_prediction_path(
         prism_version=prism_version,
         session_id=session_id,
         created_at=created_at,
+    )
+    prediction = replace(
+        prediction,
+        context=apply_collection_governance(prediction.context, gate),
     )
     return CollectedPredictionPathResult(
         observations=observations,
