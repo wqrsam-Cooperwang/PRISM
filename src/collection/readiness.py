@@ -9,6 +9,7 @@ from src.intelligence.models import (
     IntelligenceBundle,
     IntelligenceCategory,
     ReadinessLevel,
+    VerificationStatus,
 )
 
 
@@ -32,6 +33,17 @@ _OPTIONAL_CATEGORIES = (
     IntelligenceCategory.LINEUP,
     IntelligenceCategory.WEATHER,
 )
+
+_USABLE_STATUSES = {
+    VerificationStatus.VERIFIED,
+    VerificationStatus.PROVISIONAL,
+}
+
+_MARKET_REQUIRED_KEYS = {
+    "home_decimal_odds",
+    "draw_decimal_odds",
+    "away_decimal_odds",
+}
 
 
 @dataclass(frozen=True)
@@ -74,6 +86,37 @@ def _coverage(bundle: IntelligenceBundle) -> dict[IntelligenceCategory, bool]:
     return {assessment.category: assessment.covered for assessment in bundle.category_assessments}
 
 
+def _team_side(bundle: IntelligenceBundle, subject: str | None) -> str | None:
+    if subject is None:
+        return None
+    target = bundle.target
+    if subject in {"home", target.home_team_id, target.home_team_name}:
+        return "home"
+    if subject in {"away", target.away_team_id, target.away_team_name}:
+        return "away"
+    return None
+
+
+def _baseline_availability(bundle: IntelligenceBundle) -> tuple[bool, bool]:
+    usable = tuple(
+        claim
+        for claim in bundle.claims
+        if claim.status in _USABLE_STATUSES and claim.value is not None
+    )
+
+    elo_sides = {
+        side
+        for claim in usable
+        if claim.category == IntelligenceCategory.TEAM_STRENGTH
+        and claim.claim_key == "elo_rating"
+        and (side := _team_side(bundle, claim.subject)) is not None
+    }
+    market_keys = {
+        claim.claim_key for claim in usable if claim.category == IntelligenceCategory.MARKET
+    }
+    return elo_sides == {"home", "away"}, _MARKET_REQUIRED_KEYS.issubset(market_keys)
+
+
 def evaluate_collection_readiness(
     bundle: IntelligenceBundle,
 ) -> CollectionReadinessGateResult:
@@ -88,9 +131,7 @@ def evaluate_collection_readiness(
 
     source_ids = tuple(sorted({item.source.source_id for item in bundle.observations}))
     source_types = tuple(sorted({item.source.source_type.value for item in bundle.observations}))
-
-    elo_available = coverage.get(IntelligenceCategory.TEAM_STRENGTH, False)
-    market_available = coverage.get(IntelligenceCategory.MARKET, False)
+    elo_available, market_available = _baseline_availability(bundle)
     reasons: list[str] = []
 
     if bundle.readiness.level == ReadinessLevel.REJECTED:
