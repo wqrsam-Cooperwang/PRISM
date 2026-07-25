@@ -4,6 +4,8 @@ import pytest
 
 from src.collection import (
     AvailabilityScheduleAdapter,
+    CollectionGateDecision,
+    FixtureObservationAdapter,
     MarketOdds1X2Adapter,
     SourceEnvelope,
     TeamStrengthFormAdapter,
@@ -117,6 +119,7 @@ def test_multi_source_collection_runs_to_consensus() -> None:
 
     assert len(result.observations) == 14
     assert result.intelligence_bundle.readiness.level.value in {"standard", "deep"}
+    assert result.collection_gate.decision == CollectionGateDecision.READY
 
     features = result.prediction.features.values
     assert features["elo_difference"] == pytest.approx(80.0)
@@ -164,6 +167,7 @@ def test_multi_source_path_is_deterministic_across_envelope_order() -> None:
 
     assert first.observations == second.observations
     assert first.intelligence_bundle.fingerprint == second.intelligence_bundle.fingerprint
+    assert first.collection_gate == second.collection_gate
     assert first.prediction.features.fingerprint == second.prediction.features.fingerprint
     assert first.prediction.model_outputs == second.prediction.model_outputs
     assert first.prediction.context.consensus == second.prediction.context.consensus
@@ -176,6 +180,57 @@ def test_collection_timestamp_cannot_precede_provider_retrieval() -> None:
             _adapters(),
             _envelopes(),
             collected_at=datetime(2026, 7, 24, 11, 59, tzinfo=timezone.utc),
+            prism_version="test",
+            created_at=NOW,
+        )
+
+
+def test_collected_path_rejects_before_models_when_baseline_inputs_are_incomplete() -> None:
+    envelope = SourceEnvelope(
+        adapter_id="fixture_observations",
+        source=SourceRef(source_id="partial-provider", source_type=SourceType.PRIMARY_DATA),
+        retrieved_at=NOW,
+        payload={
+            "observations": [
+                {
+                    "observation_id": "home-elo-only",
+                    "category": "team_strength",
+                    "claim_key": "elo_rating",
+                    "value": 1620,
+                    "subject": "home",
+                    "observed_at": "2026-07-24T11:00:00+00:00",
+                },
+                {
+                    "observation_id": "market-home",
+                    "category": "market",
+                    "claim_key": "home_decimal_odds",
+                    "value": 1.95,
+                    "observed_at": "2026-07-24T11:00:00+00:00",
+                },
+                {
+                    "observation_id": "market-draw",
+                    "category": "market",
+                    "claim_key": "draw_decimal_odds",
+                    "value": 3.4,
+                    "observed_at": "2026-07-24T11:00:00+00:00",
+                },
+                {
+                    "observation_id": "market-away",
+                    "category": "market",
+                    "claim_key": "away_decimal_odds",
+                    "value": 4.2,
+                    "observed_at": "2026-07-24T11:00:00+00:00",
+                },
+            ]
+        },
+    )
+
+    with pytest.raises(ValueError, match="Collection readiness gate rejected prediction"):
+        run_collected_prediction_path(
+            _target(),
+            (FixtureObservationAdapter(),),
+            (envelope,),
+            collected_at=NOW,
             prism_version="test",
             created_at=NOW,
         )
