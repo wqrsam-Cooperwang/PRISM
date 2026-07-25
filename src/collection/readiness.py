@@ -86,6 +86,20 @@ def _coverage(bundle: IntelligenceBundle) -> dict[IntelligenceCategory, bool]:
     return {assessment.category: assessment.covered for assessment in bundle.category_assessments}
 
 
+def _covered_categories(
+    coverage: dict[IntelligenceCategory, bool],
+    categories: tuple[IntelligenceCategory, ...],
+) -> tuple[IntelligenceCategory, ...]:
+    return tuple(category for category in categories if coverage.get(category, False))
+
+
+def _missing_categories(
+    coverage: dict[IntelligenceCategory, bool],
+    categories: tuple[IntelligenceCategory, ...],
+) -> tuple[IntelligenceCategory, ...]:
+    return tuple(category for category in categories if not coverage.get(category, False))
+
+
 def _team_side(bundle: IntelligenceBundle, subject: str | None) -> str | None:
     if subject is None:
         return None
@@ -123,15 +137,9 @@ def evaluate_collection_readiness(
     """Evaluate whether verified collection output may enter baseline prediction."""
 
     coverage = _coverage(bundle)
-    covered_core = tuple(
-        category for category in _CORE_CATEGORIES if coverage.get(category, False)
-    )
-    missing_core = tuple(
-        category for category in _CORE_CATEGORIES if not coverage.get(category, False)
-    )
-    covered_optional = tuple(
-        category for category in _OPTIONAL_CATEGORIES if coverage.get(category, False)
-    )
+    covered_core = _covered_categories(coverage, _CORE_CATEGORIES)
+    missing_core = _missing_categories(coverage, _CORE_CATEGORIES)
+    covered_optional = _covered_categories(coverage, _OPTIONAL_CATEGORIES)
 
     source_ids = tuple(sorted({item.source.source_id for item in bundle.observations}))
     source_types = tuple(sorted({item.source.source_type.value for item in bundle.observations}))
