@@ -6,7 +6,6 @@ from src.collection import SourceEnvelope, WeatherLineupAdapter, collect_observa
 from src.features import build_feature_vector
 from src.intelligence import MatchTarget, SourceRef, SourceType, build_intelligence_bundle
 from src.intelligence.normalization import normalize_intelligence_facts
-from src.runtime.request import build_match_context
 
 NOW = datetime(2026, 7, 24, 12, 0, tzinfo=timezone.utc)
 
@@ -37,7 +36,10 @@ def _payload() -> dict[str, object]:
 def _envelope(payload: dict[str, object]) -> SourceEnvelope:
     return SourceEnvelope(
         adapter_id="weather_lineup",
-        source=SourceRef(source_id="weather-lineup-provider", source_type=SourceType.OFFICIAL),
+        source=SourceRef(
+            source_id="weather-lineup-provider",
+            source_type=SourceType.OFFICIAL,
+        ),
         retrieved_at=NOW,
         payload=payload,
     )
