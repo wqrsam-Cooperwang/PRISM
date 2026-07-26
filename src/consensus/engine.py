@@ -6,7 +6,11 @@ from collections.abc import Iterable
 from dataclasses import replace
 from statistics import mean
 
-from src.consensus.correlation import evidence_family, family_capped_weights, weighted_probability_mean
+from src.consensus.correlation import (
+    evidence_family,
+    family_capped_weights,
+    weighted_probability_mean,
+)
 from src.domain.models import ConsensusOutput, MatchContext, ModelOutput
 
 
