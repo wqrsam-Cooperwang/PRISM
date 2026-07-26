@@ -138,7 +138,9 @@ class TeamStatisticsProbabilityModel:
         draw_quality = self.draw_scale * sqrt(strength_ratio)
         total = home_quality + draw_quality + away_quality
         if not isfinite(total) or total <= 0.0:
-            raise ValueError("Team-statistics probability qualities must have a positive finite total")
+            raise ValueError(
+                "Team-statistics probability qualities must have a positive finite total"
+            )
 
         return ModelOutput(
             model_id=self.model_id,
