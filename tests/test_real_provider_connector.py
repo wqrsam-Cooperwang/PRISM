@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from email.message import Message
 from io import BytesIO
 from urllib.error import HTTPError, URLError
@@ -17,7 +18,8 @@ from src.connectors import (
     decode_json_object,
     send_with_retry,
 )
-from tests.conftest import FIXED_NOW
+
+FIXED_NOW = datetime(2026, 7, 26, 12, 0, tzinfo=timezone.utc)
 
 
 def _response(status: int, body: bytes = b"{}") -> HttpResponse:
