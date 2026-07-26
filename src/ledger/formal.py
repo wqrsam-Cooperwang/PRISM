@@ -72,6 +72,7 @@ def run_formal_acquired_prediction_path(
         production.collection_gate,
         production.features,
         frozen_at=frozen_at,
+        model_outputs=production.runtime_result.context.model_outputs,
     )
     ledger_path = ledger_store.persist(snapshot)
     return FormalPredictionResult(
