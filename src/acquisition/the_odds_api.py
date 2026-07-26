@@ -7,7 +7,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from datetime import datetime
 from math import isfinite
-from typing import Any
+from typing import Any, cast
 
 from src.acquisition.models import ProviderFetchRequest
 from src.collection.models import SourceEnvelope
@@ -44,7 +44,7 @@ def _mapping(value: Any, field_name: str) -> Mapping[str, Any]:
 def _sequence(value: Any, field_name: str) -> Sequence[Any]:
     if isinstance(value, (str, bytes, bytearray)) or not isinstance(value, Sequence):
         raise ProviderSchemaError(f"{field_name} must be an array")
-    return value
+    return cast(Sequence[Any], value)
 
 
 def _text(value: Any, field_name: str) -> str:
