@@ -207,7 +207,8 @@ def test_gate_rejects_one_sided_elo_even_when_strength_category_is_covered() -> 
 
     assert result.decision == CollectionGateDecision.REJECTED
     assert result.elo_baseline_available is False
-    assert "elo baseline inputs are unavailable" in result.reasons
+    assert result.team_statistics_baseline_available is False
+    assert "team strength baseline inputs are unavailable" in result.reasons
 
 
 def test_source_coverage_metadata_is_deterministic() -> None:
