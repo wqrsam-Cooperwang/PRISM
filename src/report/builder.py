@@ -18,6 +18,14 @@ from src.report.models import (
 from src.runtime.orchestrator import RuntimeResult
 
 
+def _scoreline_candidate(item):
+    return ScorelineCandidateReport(
+        home_goals=item.home_goals,
+        away_goals=item.away_goals,
+        probability=item.probability,
+    )
+
+
 def build_prediction_report(result: RuntimeResult) -> PredictionReport:
     """Project a completed runtime result without recalculating analytical values."""
 
@@ -101,13 +109,9 @@ def build_prediction_report(result: RuntimeResult) -> PredictionReport:
                 method=scoreline.method,
                 expected_home_goals=scoreline.expected_home_goals,
                 expected_away_goals=scoreline.expected_away_goals,
-                top_scorelines=tuple(
-                    ScorelineCandidateReport(
-                        home_goals=item.home_goals,
-                        away_goals=item.away_goals,
-                        probability=item.probability,
-                    )
-                    for item in scoreline.top_scorelines
+                top_scorelines=tuple(_scoreline_candidate(item) for item in scoreline.top_scorelines),
+                recommended_scorelines=tuple(
+                    _scoreline_candidate(item) for item in scoreline.recommended_scorelines
                 ),
                 source_model_ids=scoreline.source_model_ids,
                 grid_probability_mass=scoreline.grid_probability_mass,
