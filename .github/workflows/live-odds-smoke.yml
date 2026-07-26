@@ -1,0 +1,63 @@
+name: Live Odds Smoke Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      home_team:
+        description: Home team name
+        required: true
+        type: string
+      away_team:
+        description: Away team name
+        required: true
+        type: string
+      competition:
+        description: Competition label
+        required: true
+        default: K League 1
+        type: string
+      kickoff:
+        description: Kickoff as timezone-aware ISO-8601 timestamp
+        required: true
+        type: string
+      sport_key:
+        description: The Odds API sport key
+        required: true
+        default: soccer_korea_kleague1
+        type: string
+      bookmaker_key:
+        description: The Odds API bookmaker key
+        required: true
+        default: pinnacle
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  live-odds-smoke:
+    runs-on: ubuntu-latest
+    env:
+      THE_ODDS_API_KEY: ${{ secrets.THE_ODDS_API_KEY }}
+      PRISM_ODDS_SPORT_KEY: ${{ inputs.sport_key }}
+      PRISM_ODDS_BOOKMAKER_KEY: ${{ inputs.bookmaker_key }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install project
+        run: python -m pip install --upgrade pip && python -m pip install -e .
+
+      - name: Acquire live odds
+        run: >-
+          python scripts/live_odds_smoke.py
+          --home "${{ inputs.home_team }}"
+          --away "${{ inputs.away_team }}"
+          --competition "${{ inputs.competition }}"
+          --kickoff "${{ inputs.kickoff }}"
