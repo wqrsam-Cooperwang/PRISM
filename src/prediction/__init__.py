@@ -1,6 +1,10 @@
 """Public prediction-model API for PRISM."""
 
-from src.prediction.baselines import EloProbabilityModel, MarketProbabilityModel
+from src.prediction.baselines import (
+    EloProbabilityModel,
+    MarketProbabilityModel,
+    TeamStatisticsProbabilityModel,
+)
 from src.prediction.collection_path import (
     CollectedPredictionPathResult,
     run_collected_prediction_path,
@@ -20,6 +24,7 @@ __all__ = [
     "MarketProbabilityModel",
     "PredictionModel",
     "PredictionPathResult",
+    "TeamStatisticsProbabilityModel",
     "run_baseline_prediction_path",
     "run_collected_prediction_path",
     "run_full_automated_prediction_path",
