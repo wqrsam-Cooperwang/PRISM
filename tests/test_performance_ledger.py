@@ -1,6 +1,7 @@
 import json
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -14,6 +15,7 @@ from src.intelligence import (
     SourceType,
 )
 from src.ledger import FileSystemPredictionLedgerStore, build_prediction_snapshot
+from src.ledger import formal as formal_module
 from src.report.models import (
     ConsensusReport,
     MatchReport,
@@ -163,4 +165,30 @@ def test_snapshot_rejects_freeze_at_or_after_kickoff() -> None:
             _gate(),
             _features(),
             frozen_at=KICKOFF,
+        )
+
+
+def test_formal_prediction_fails_closed_when_persistence_fails(monkeypatch) -> None:
+    production = SimpleNamespace(
+        report=_report(),
+        observations=(_observation(),),
+        collection_gate=_gate(),
+        features=_features(),
+    )
+    monkeypatch.setattr(formal_module, "run_acquired_prediction_path", lambda *args, **kwargs: production)
+
+    class FailingStore:
+        def persist(self, snapshot):
+            del snapshot
+            raise OSError("ledger unavailable")
+
+    with pytest.raises(OSError, match="ledger unavailable"):
+        formal_module.run_formal_acquired_prediction_path(
+            request=object(),
+            clients=(),
+            adapters=(),
+            ledger_store=FailingStore(),
+            collected_at=NOW,
+            frozen_at=NOW,
+            prism_version="test",
         )
