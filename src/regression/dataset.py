@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from src.domain.models import ModelOutput
 from src.regression.scoreline import ScorelineRegressionCase
@@ -19,7 +19,7 @@ def _number(value: Any, field_name: str) -> float:
 def _non_negative_int(value: Any, field_name: str) -> int:
     if isinstance(value, bool) or not isinstance(value, int) or value < 0:
         raise ValueError(f"{field_name} must be a non-negative integer")
-    return value
+    return cast(int, value)
 
 
 def load_scoreline_regression_dataset(path: Path | str) -> tuple[ScorelineRegressionCase, ...]:
