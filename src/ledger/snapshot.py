@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from hashlib import sha256
 from typing import Any
 
@@ -75,7 +76,7 @@ def build_prediction_snapshot(
     gate: CollectionReadinessGateResult,
     features: FeatureVector,
     *,
-    frozen_at,
+    frozen_at: datetime,
 ) -> PredictionLedgerSnapshot:
     """Project one governed production result into a durable frozen snapshot."""
 
