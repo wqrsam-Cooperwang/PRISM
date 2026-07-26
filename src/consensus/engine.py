@@ -6,14 +6,15 @@ from collections.abc import Iterable
 from dataclasses import replace
 from statistics import mean
 
+from src.consensus.correlation import evidence_family, family_capped_weights, weighted_probability_mean
 from src.domain.models import ConsensusOutput, MatchContext, ModelOutput
 
 
 class ConsensusEngine:
-    """Aggregate model probabilities and measure inter-model agreement."""
+    """Aggregate model probabilities with correlated-evidence family caps."""
 
     name = "consensus"
-    version = "1.0.0"
+    version = "2.1.0"
 
     def run(self, context: MatchContext) -> MatchContext:
         models = context.model_outputs
@@ -24,9 +25,10 @@ class ConsensusEngine:
         if len(model_ids) != len(set(model_ids)):
             raise ValueError("Consensus Engine requires unique model ids")
 
-        home_probability = mean(model.home_probability for model in models)
-        draw_probability = mean(model.draw_probability for model in models)
-        away_probability = mean(model.away_probability for model in models)
+        weights = family_capped_weights(models)
+        home_probability, draw_probability, away_probability = weighted_probability_mean(
+            models, weights
+        )
 
         if len(models) == 1:
             mean_distance = 0.50
@@ -46,6 +48,10 @@ class ConsensusEngine:
             draw_probability,
             away_probability,
         )
+        family_summary = ",".join(
+            f"{model.model_id}:{evidence_family(model)}:{weight:.6f}"
+            for model, weight in zip(models, weights)
+        )
 
         output = ConsensusOutput(
             model_count=len(models),
@@ -58,9 +64,11 @@ class ConsensusEngine:
             max_spread=round(max_spread, 6),
             leading_outcome=leading_outcome,
             margin=round(margin, 6),
+            method="correlated_evidence_family_cap",
             rationale=(
-                "method=equal_weight_mean",
+                "method=correlated_evidence_family_cap",
                 f"model_count={len(models)}",
+                f"effective_weights={family_summary}",
                 f"agreement={agreement:.6f}",
                 f"max_spread={max_spread:.6f}",
             ),
