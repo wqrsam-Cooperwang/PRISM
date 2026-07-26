@@ -26,6 +26,11 @@ from src.acquisition.runtime_config import (
 )
 from src.acquisition.the_odds_api import TheOddsApiV4MarketClient
 from src.acquisition.the_sports_db import TheSportsDbScheduleClient
+from src.acquisition.the_sports_db_search import TheSportsDbEventSearchClient
+from src.acquisition.the_sports_db_smoke import (
+    LiveTheSportsDbSmokeSummary,
+    run_live_thesportsdb_smoke,
+)
 
 __all__ = [
     "ApiFootballIdentityResolver",
@@ -35,11 +40,13 @@ __all__ = [
     "FixtureProviderClient",
     "LiveOddsSmokeSummary",
     "LiveTeamStatisticsSmokeSummary",
+    "LiveTheSportsDbSmokeSummary",
     "OddsProviderRuntimeConfig",
     "ProviderAcquisitionError",
     "ProviderClient",
     "ProviderFetchRequest",
     "TheOddsApiV4MarketClient",
+    "TheSportsDbEventSearchClient",
     "TheSportsDbScheduleClient",
     "acquire_source_envelopes",
     "build_api_football_team_statistics_client",
@@ -48,4 +55,5 @@ __all__ = [
     "run_live_market_prediction_path",
     "run_live_odds_smoke",
     "run_live_team_statistics_smoke",
+    "run_live_thesportsdb_smoke",
 ]
