@@ -16,9 +16,10 @@ from src.report.models import (
     ScorelineReport,
 )
 from src.runtime.orchestrator import RuntimeResult
+from src.scoreline.models import ScorelineCandidate
 
 
-def _scoreline_candidate(item):
+def _scoreline_candidate(item: ScorelineCandidate) -> ScorelineCandidateReport:
     return ScorelineCandidateReport(
         home_goals=item.home_goals,
         away_goals=item.away_goals,
@@ -109,7 +110,9 @@ def build_prediction_report(result: RuntimeResult) -> PredictionReport:
                 method=scoreline.method,
                 expected_home_goals=scoreline.expected_home_goals,
                 expected_away_goals=scoreline.expected_away_goals,
-                top_scorelines=tuple(_scoreline_candidate(item) for item in scoreline.top_scorelines),
+                top_scorelines=tuple(
+                    _scoreline_candidate(item) for item in scoreline.top_scorelines
+                ),
                 recommended_scorelines=tuple(
                     _scoreline_candidate(item) for item in scoreline.recommended_scorelines
                 ),
