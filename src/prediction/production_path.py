@@ -18,7 +18,10 @@ from src.collection.runner import collect_observations
 from src.decision.engine import DecisionEngine
 from src.features import FeatureVector, build_feature_vector
 from src.intelligence.models import IntelligenceBundle, MatchTarget, Observation
-from src.intelligence.normalization import normalize_intelligence_bundle, normalize_intelligence_facts
+from src.intelligence.normalization import (
+    normalize_intelligence_bundle,
+    normalize_intelligence_facts,
+)
 from src.intelligence.pipeline import build_intelligence_bundle
 from src.prediction.baselines import EloProbabilityModel, MarketProbabilityModel
 from src.prediction.runner import run_model_suite
