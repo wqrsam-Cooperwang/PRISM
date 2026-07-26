@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from urllib.error import HTTPError, URLError
+from urllib.error import HTTPError
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from urllib.request import Request, urlopen
 
@@ -32,8 +32,11 @@ class StdlibHttpTransport:
         )
         try:
             with urlopen(outbound, timeout=request.timeout_seconds) as response:
+                status_code = response.getcode()
+                if status_code is None:
+                    raise HttpTransportError("Provider HTTP response did not include a status code")
                 return HttpResponse(
-                    status_code=response.getcode(),
+                    status_code=status_code,
                     headers=dict(response.headers.items()),
                     body=response.read(),
                     received_at=datetime.now(timezone.utc),
@@ -45,5 +48,5 @@ class StdlibHttpTransport:
                 body=exc.read(),
                 received_at=datetime.now(timezone.utc),
             )
-        except (URLError, TimeoutError, OSError) as exc:
+        except OSError as exc:
             raise HttpTransportError("Provider HTTP transport failed") from exc
