@@ -45,6 +45,11 @@ _MARKET_REQUIRED_KEYS = {
     "away_decimal_odds",
 }
 
+_TEAM_STATISTICS_REQUIRED_KEYS = {
+    "points_per_game",
+    "goal_difference_per_game",
+}
+
 
 @dataclass(frozen=True)
 class CollectionReadinessGateResult:
@@ -59,6 +64,7 @@ class CollectionReadinessGateResult:
     elo_baseline_available: bool
     market_baseline_available: bool
     reasons: tuple[str, ...]
+    team_statistics_baseline_available: bool = False
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "decision", CollectionGateDecision(self.decision))
@@ -111,7 +117,7 @@ def _team_side(bundle: IntelligenceBundle, subject: str | None) -> str | None:
     return None
 
 
-def _baseline_availability(bundle: IntelligenceBundle) -> tuple[bool, bool]:
+def _baseline_availability(bundle: IntelligenceBundle) -> tuple[bool, bool, bool]:
     usable = tuple(
         claim
         for claim in bundle.claims
@@ -125,10 +131,28 @@ def _baseline_availability(bundle: IntelligenceBundle) -> tuple[bool, bool]:
         and claim.claim_key == "elo_rating"
         and (side := _team_side(bundle, claim.subject)) is not None
     }
+    team_statistics: dict[str, set[str]] = {"home": set(), "away": set()}
+    for claim in usable:
+        if claim.category != IntelligenceCategory.TEAM_STRENGTH:
+            continue
+        if claim.claim_key not in _TEAM_STATISTICS_REQUIRED_KEYS:
+            continue
+        side = _team_side(bundle, claim.subject)
+        if side is not None:
+            team_statistics[side].add(claim.claim_key)
+
     market_keys = {
         claim.claim_key for claim in usable if claim.category == IntelligenceCategory.MARKET
     }
-    return elo_sides == {"home", "away"}, _MARKET_REQUIRED_KEYS.issubset(market_keys)
+    team_statistics_available = all(
+        _TEAM_STATISTICS_REQUIRED_KEYS.issubset(team_statistics[side])
+        for side in ("home", "away")
+    )
+    return (
+        elo_sides == {"home", "away"},
+        team_statistics_available,
+        _MARKET_REQUIRED_KEYS.issubset(market_keys),
+    )
 
 
 def evaluate_collection_readiness(
@@ -143,16 +167,17 @@ def evaluate_collection_readiness(
 
     source_ids = tuple(sorted({item.source.source_id for item in bundle.observations}))
     source_types = tuple(sorted({item.source.source_type.value for item in bundle.observations}))
-    elo_available, market_available = _baseline_availability(bundle)
+    elo_available, team_statistics_available, market_available = _baseline_availability(bundle)
+    strength_available = elo_available or team_statistics_available
     reasons: list[str] = []
 
     if bundle.readiness.level == ReadinessLevel.REJECTED:
         decision = CollectionGateDecision.REJECTED
         reasons.append("intelligence readiness is rejected")
-    elif not (elo_available and market_available):
+    elif not (strength_available and market_available):
         decision = CollectionGateDecision.REJECTED
-        if not elo_available:
-            reasons.append("elo baseline inputs are unavailable")
+        if not strength_available:
+            reasons.append("team strength baseline inputs are unavailable")
         if not market_available:
             reasons.append("market baseline inputs are unavailable")
     elif not missing_core and bundle.readiness.level in {
@@ -177,4 +202,5 @@ def evaluate_collection_readiness(
         elo_baseline_available=elo_available,
         market_baseline_available=market_available,
         reasons=tuple(reasons),
+        team_statistics_baseline_available=team_statistics_available,
     )
