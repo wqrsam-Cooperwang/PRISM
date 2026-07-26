@@ -175,7 +175,11 @@ def test_formal_prediction_fails_closed_when_persistence_fails(monkeypatch) -> N
         collection_gate=_gate(),
         features=_features(),
     )
-    monkeypatch.setattr(formal_module, "run_acquired_prediction_path", lambda *args, **kwargs: production)
+    monkeypatch.setattr(
+        formal_module,
+        "run_acquired_prediction_path",
+        lambda *args, **kwargs: production,
+    )
 
     class FailingStore:
         def persist(self, snapshot):
