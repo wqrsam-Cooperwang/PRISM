@@ -36,7 +36,7 @@ def _sequence(value: Any, field_name: str) -> Sequence[Any]:
 def _integer(value: Any, field_name: str) -> int:
     if isinstance(value, bool) or not isinstance(value, int):
         raise ProviderSchemaError(f"{field_name} must be an integer")
-    return value
+    return cast(int, value)
 
 
 def _validate_api_errors(payload: Mapping[str, Any]) -> None:
