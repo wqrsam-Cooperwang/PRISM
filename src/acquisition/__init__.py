@@ -1,5 +1,6 @@
 """Public provider acquisition API for PRISM."""
 
+from src.acquisition.api_football import ApiFootballTeamStatisticsClient
 from src.acquisition.fixture import FixtureProviderClient
 from src.acquisition.interface import ProviderClient
 from src.acquisition.live_production import run_live_market_prediction_path
@@ -14,6 +15,7 @@ from src.acquisition.runtime_config import (
 from src.acquisition.the_odds_api import TheOddsApiV4MarketClient
 
 __all__ = [
+    "ApiFootballTeamStatisticsClient",
     "FixtureProviderClient",
     "LiveOddsSmokeSummary",
     "OddsProviderRuntimeConfig",
