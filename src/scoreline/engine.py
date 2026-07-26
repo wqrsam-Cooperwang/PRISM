@@ -4,51 +4,85 @@ from __future__ import annotations
 
 from math import exp, factorial, isfinite
 
-from src.domain.models import MatchContext
+from src.consensus.correlation import assumption_family, family_capped_weights
+from src.domain.models import MatchContext, ModelOutput
+from src.scoreline.diversity import select_diversified_pair
 from src.scoreline.models import ScorelineCandidate, ScorelineOutput
 
 
 class ScorelineEngine:
-    """Generate a transparent exact-score baseline after Decision."""
+    """Generate PRISM Exact Score V2.1 after Decision."""
 
     name = "scoreline"
-    version = "1.0.0"
+    version = "2.1.0"
     max_goals = 10
+    scenario_weights = (
+        ("balanced", 0.54),
+        ("home_scores_first", 0.12),
+        ("away_scores_first", 0.12),
+        ("early_open", 0.14),
+        ("symmetric_tail_floor", 0.08),
+    )
+    defensive_tail_rate_floor = 0.65
 
     def run(self, context: MatchContext) -> ScorelineOutput:
         if context.decision is None:
             raise ValueError("Scoreline Engine requires Decision output")
 
-        eligible_xg = tuple(
-            (float(model.expected_home_goals), float(model.expected_away_goals))
+        eligible = tuple(
+            model
             for model in context.model_outputs
             if model.expected_home_goals is not None and model.expected_away_goals is not None
         )
-        if not eligible_xg:
+        if not eligible:
             return ScorelineOutput(
                 available=False,
-                method="independent_poisson_equal_weight_xg",
+                method="scenario_mixture_poisson_v2_1",
                 rationale=(
                     "Scoreline unavailable because no model supplied both expected-goal values.",
                 ),
             )
 
-        for home_xg, away_xg in eligible_xg:
-            if not isfinite(home_xg) or not isfinite(away_xg) or home_xg < 0.0 or away_xg < 0.0:
-                raise ValueError("Scoreline expected-goal inputs must be finite and non-negative")
+        self._validate_expected_goals(eligible)
+        xg_weights = family_capped_weights(eligible, use_assumption_family=True)
+        base_home_xg = sum(
+            float(model.expected_home_goals) * weight
+            for model, weight in zip(eligible, xg_weights)
+        )
+        base_away_xg = sum(
+            float(model.expected_away_goals) * weight
+            for model, weight in zip(eligible, xg_weights)
+        )
 
-        home_xg = sum(home for home, _ in eligible_xg) / len(eligible_xg)
-        away_xg = sum(away for _, away in eligible_xg) / len(eligible_xg)
-        goal_range = range(self.max_goals + 1)
-        home_probs = tuple(self._poisson_probability(home_xg, goals) for goals in goal_range)
-        away_probs = tuple(self._poisson_probability(away_xg, goals) for goals in goal_range)
+        scenarios = self._scenario_rates(base_home_xg, base_away_xg)
+        candidate_probabilities = {
+            (home_goals, away_goals): 0.0
+            for home_goals in range(self.max_goals + 1)
+            for away_goals in range(self.max_goals + 1)
+        }
+        effective_home_xg = 0.0
+        effective_away_xg = 0.0
+        for name, scenario_weight in self.scenario_weights:
+            home_rate, away_rate = scenarios[name]
+            effective_home_xg += scenario_weight * home_rate
+            effective_away_xg += scenario_weight * away_rate
+            home_probs = tuple(
+                self._poisson_probability(home_rate, goals)
+                for goals in range(self.max_goals + 1)
+            )
+            away_probs = tuple(
+                self._poisson_probability(away_rate, goals)
+                for goals in range(self.max_goals + 1)
+            )
+            for home_goals in range(self.max_goals + 1):
+                for away_goals in range(self.max_goals + 1):
+                    candidate_probabilities[(home_goals, away_goals)] += (
+                        scenario_weight * home_probs[home_goals] * away_probs[away_goals]
+                    )
 
         candidates = tuple(
-            ScorelineCandidate(
-                home_goals, away_goals, home_probs[home_goals] * away_probs[away_goals]
-            )
-            for home_goals in goal_range
-            for away_goals in goal_range
+            ScorelineCandidate(home_goals, away_goals, probability)
+            for (home_goals, away_goals), probability in candidate_probabilities.items()
         )
         ranked = tuple(
             sorted(
@@ -61,29 +95,53 @@ class ScorelineEngine:
                 ),
             )
         )
+        recommended = select_diversified_pair(ranked)
         grid_mass = sum(item.probability for item in candidates)
         tail_mass = max(0.0, 1.0 - grid_mass)
-
-        source_model_ids = tuple(
-            model.model_id
-            for model in context.model_outputs
-            if model.expected_home_goals is not None and model.expected_away_goals is not None
+        assumption_summary = ",".join(
+            f"{model.model_id}:{assumption_family(model)}:{weight:.6f}"
+            for model, weight in zip(eligible, xg_weights)
         )
+
         return ScorelineOutput(
             available=True,
-            method="independent_poisson_equal_weight_xg",
-            source_model_ids=source_model_ids,
-            expected_home_goals=home_xg,
-            expected_away_goals=away_xg,
+            method="scenario_mixture_poisson_v2_1",
+            source_model_ids=tuple(model.model_id for model in eligible),
+            expected_home_goals=effective_home_xg,
+            expected_away_goals=effective_away_xg,
             top_scorelines=ranked[:3],
+            recommended_scorelines=recommended,
             grid_probability_mass=grid_mass,
             tail_mass=tail_mass,
             rationale=(
-                "Expected goals are the equal-weight mean of eligible model outputs.",
-                "Exact-score probabilities use an independent Poisson baseline "
-                "over goals 0 through 10.",
+                "xG inputs use shared-assumption family caps before scenario generation.",
+                f"effective_xg_weights={assumption_summary}",
+                "Score probabilities are a deterministic mixture of balanced, first-goal, "
+                "early-open, and symmetric-tail scenarios.",
+                "The defensive-tail scenario applies a symmetric minimum scoring rate of 0.65.",
+                "The two recommendations use a shared-story diversity penalty; raw Top 3 remain audited.",
             ),
         )
+
+    @staticmethod
+    def _validate_expected_goals(models: tuple[ModelOutput, ...]) -> None:
+        for model in models:
+            home_xg = float(model.expected_home_goals)
+            away_xg = float(model.expected_away_goals)
+            if not isfinite(home_xg) or not isfinite(away_xg) or home_xg < 0.0 or away_xg < 0.0:
+                raise ValueError("Scoreline expected-goal inputs must be finite and non-negative")
+
+    def _scenario_rates(self, home_xg: float, away_xg: float) -> dict[str, tuple[float, float]]:
+        return {
+            "balanced": (home_xg, away_xg),
+            "home_scores_first": (home_xg * 0.95, away_xg * 1.20),
+            "away_scores_first": (home_xg * 1.20, away_xg * 0.95),
+            "early_open": (home_xg * 1.25, away_xg * 1.25),
+            "symmetric_tail_floor": (
+                max(home_xg, self.defensive_tail_rate_floor),
+                max(away_xg, self.defensive_tail_rate_floor),
+            ),
+        }
 
     @staticmethod
     def _poisson_probability(rate: float, goals: int) -> float:
