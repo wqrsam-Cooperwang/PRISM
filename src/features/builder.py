@@ -21,6 +21,8 @@ _READINESS_SCORE = {
 
 _CORE_FEATURES = (
     "elo_difference",
+    "team_points_per_game_difference",
+    "team_goal_difference_per_game_difference",
     "recent_points_difference",
     "missing_starters_difference",
     "rest_days_difference",
@@ -136,6 +138,18 @@ def build_feature_vector(
     missing: set[str] = set(_CORE_FEATURES)
 
     elo_difference = _difference(data, "team_strength", "elo_rating", "elo_difference")
+    team_points_per_game_difference = _difference(
+        data,
+        "team_strength",
+        "points_per_game",
+        "team_points_per_game_difference",
+    )
+    team_goal_difference_per_game_difference = _difference(
+        data,
+        "team_strength",
+        "goal_difference_per_game",
+        "team_goal_difference_per_game_difference",
+    )
     recent_points_difference = _difference(
         data,
         "recent_form",
@@ -152,6 +166,8 @@ def build_feature_vector(
 
     direct = {
         "elo_difference": elo_difference,
+        "team_points_per_game_difference": team_points_per_game_difference,
+        "team_goal_difference_per_game_difference": team_goal_difference_per_game_difference,
         "recent_points_difference": recent_points_difference,
         "missing_starters_difference": missing_starters_difference,
         "rest_days_difference": rest_days_difference,
