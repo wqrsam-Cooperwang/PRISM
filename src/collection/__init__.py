@@ -15,6 +15,7 @@ from src.collection.readiness import (
     evaluate_collection_readiness,
 )
 from src.collection.runner import collect_observations
+from src.collection.team_statistics import TeamStatisticsAdapter
 from src.collection.team_strength_form import TeamStrengthFormAdapter
 from src.collection.weather_lineup import WeatherLineupAdapter
 
@@ -26,6 +27,7 @@ __all__ = [
     "MarketOdds1X2Adapter",
     "ObservationAdapter",
     "SourceEnvelope",
+    "TeamStatisticsAdapter",
     "TeamStrengthFormAdapter",
     "WeatherLineupAdapter",
     "apply_collection_governance",
