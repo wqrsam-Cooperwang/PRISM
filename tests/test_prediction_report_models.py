@@ -51,13 +51,17 @@ def build_report() -> PredictionReport:
         ),
         scoreline=ScorelineReport(
             available=True,
-            method="independent_poisson_equal_weight_xg",
+            method="scenario_mixture_poisson_v2_1",
             expected_home_goals=1.5,
             expected_away_goals=0.9,
             top_scorelines=(
                 ScorelineCandidateReport(1, 0, 0.13),
                 ScorelineCandidateReport(1, 1, 0.12),
                 ScorelineCandidateReport(2, 0, 0.10),
+            ),
+            recommended_scorelines=(
+                ScorelineCandidateReport(1, 0, 0.13),
+                ScorelineCandidateReport(1, 1, 0.12),
             ),
             source_model_ids=("poisson", "xg"),
             grid_probability_mass=0.999,
@@ -85,6 +89,10 @@ def test_prediction_report_serializes_to_json_compatible_dictionary() -> None:
         "away_goals": 0,
         "probability": 0.13,
     }
+    assert output["scoreline"]["recommended_scorelines"] == [
+        {"home_goals": 1, "away_goals": 0, "probability": 0.13},
+        {"home_goals": 1, "away_goals": 1, "probability": 0.12},
+    ]
     assert output["provenance"]["engine_trace"][0]["name"] == "evidence"
 
 
