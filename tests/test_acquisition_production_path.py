@@ -236,12 +236,14 @@ def test_provider_failure_stops_before_prediction() -> None:
 
 def test_client_order_does_not_change_downstream_artifacts() -> None:
     clients = _ready_clients()
+    session_id = "client-order-determinism"
     forward = run_acquired_prediction_path(
         _request(),
         clients,
         _ready_adapters(),
         collected_at=NOW,
         prism_version="test",
+        session_id=session_id,
         created_at=NOW,
     )
     reverse = run_acquired_prediction_path(
@@ -250,6 +252,7 @@ def test_client_order_does_not_change_downstream_artifacts() -> None:
         _ready_adapters(),
         collected_at=NOW,
         prism_version="test",
+        session_id=session_id,
         created_at=NOW,
     )
 
