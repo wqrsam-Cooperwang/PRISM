@@ -22,10 +22,28 @@ def _normalize_name(value: str) -> str:
     return " ".join(value.casefold().replace("-", " ").split())
 
 
+def _provider_error_summary(errors: Any) -> str:
+    """Return useful provider diagnostics without ever including credentials."""
+
+    if isinstance(errors, dict):
+        parts: list[str] = []
+        for key, value in sorted(errors.items(), key=lambda item: str(item[0])):
+            safe_key = str(key)
+            safe_value = str(value)
+            if "key" in safe_key.casefold() or "token" in safe_key.casefold():
+                safe_value = "<redacted>"
+            parts.append(f"{safe_key}: {safe_value}")
+        return "; ".join(parts) or "unspecified provider error"
+    if isinstance(errors, list):
+        return "; ".join(str(item) for item in errors) or "unspecified provider error"
+    return str(errors)
+
+
 def _response_list(payload: dict[str, Any], field_name: str) -> list[dict[str, Any]]:
     errors = payload.get("errors")
     if errors not in (None, [], {}):
-        raise ProviderSchemaError("API-Football identity response contains provider errors")
+        detail = _provider_error_summary(errors)
+        raise ProviderSchemaError(f"API-Football identity response error: {detail}")
     response = payload.get("response")
     if not isinstance(response, list):
         raise ProviderSchemaError(f"{field_name} response must be an array")
