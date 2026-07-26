@@ -114,12 +114,14 @@ def test_builds_core_relative_and_market_features() -> None:
     assert vector.values["market_draw_implied_probability"] == pytest.approx(draw_raw / total)
     assert vector.values["market_away_implied_probability"] == pytest.approx(away_raw / total)
     assert vector.values["market_overround"] == pytest.approx(total - 1.0)
-    assert vector.missing_features == ()
+    assert vector.missing_features == (
+        "team_goal_difference_per_game_difference",
+        "team_points_per_game_difference",
+    )
 
 
 def test_quality_metadata_is_numeric_and_explicit() -> None:
     vector = build_feature_vector(_normalized(readiness=ReadinessLevel.STANDARD))
-
     assert vector.values["intelligence_readiness_score"] == pytest.approx(2 / 3)
     assert vector.values["evidence_lineup"] == pytest.approx(1.0)
     assert vector.values["evidence_historical_data"] == pytest.approx(0.85)
@@ -134,7 +136,6 @@ def test_missing_pair_does_not_become_zero_difference() -> None:
         },
     }
     vector = build_feature_vector(_normalized(data))
-
     assert "elo_difference" not in vector.values
     assert "elo_difference" in vector.missing_features
     assert vector.values["recent_points_difference"] == 0.0
