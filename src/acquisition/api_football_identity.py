@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, cast
 
 from src.connectors import (
     HttpRequest,
@@ -40,7 +40,7 @@ def _response_list(payload: dict[str, Any], field_name: str) -> list[dict[str, A
 def _positive_int(value: Any, field_name: str) -> int:
     if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
         raise ProviderSchemaError(f"{field_name} must be a positive integer")
-    return value
+    return cast(int, value)
 
 
 def _text(value: Any, field_name: str) -> str:
