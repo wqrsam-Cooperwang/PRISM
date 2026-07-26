@@ -62,9 +62,10 @@ def weighted_probability_mean(
     if not models:
         raise ValueError("weighted_probability_mean requires at least one model")
 
-    home = sum(model.home_probability * weight for model, weight in zip(models, weights))
-    draw = sum(model.draw_probability * weight for model, weight in zip(models, weights))
-    away = sum(model.away_probability * weight for model, weight in zip(models, weights))
+    pairs = tuple(zip(models, weights, strict=True))
+    home = sum(model.home_probability * weight for model, weight in pairs)
+    draw = sum(model.draw_probability * weight for model, weight in pairs)
+    away = sum(model.away_probability * weight for model, weight in pairs)
     total = home + draw + away
     if total <= 0.0:
         raise ValueError("weighted probability total must be positive")
