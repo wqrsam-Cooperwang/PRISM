@@ -88,9 +88,9 @@ def _decode_event_array(body: bytes) -> Sequence[Any]:
 def _event_matches(event: Mapping[str, Any], request: ProviderFetchRequest) -> bool:
     home = _normalized_team_name(_text(event.get("home_team"), "event.home_team"))
     away = _normalized_team_name(_text(event.get("away_team"), "event.away_team"))
-    return home == _normalized_team_name(request.target.home_team_name) and away == _normalized_team_name(
-        request.target.away_team_name
-    )
+    expected_home = _normalized_team_name(request.target.home_team_name)
+    expected_away = _normalized_team_name(request.target.away_team_name)
+    return home == expected_home and away == expected_away
 
 
 def _select_event(events: Sequence[Any], request: ProviderFetchRequest) -> Mapping[str, Any]:
@@ -119,7 +119,7 @@ def _validate_kickoff(
 
 def _select_bookmaker(event: Mapping[str, Any], bookmaker_key: str) -> Mapping[str, Any]:
     bookmakers = _sequence(event.get("bookmakers"), "event.bookmakers")
-    matches = []
+    matches: list[Mapping[str, Any]] = []
     for index, raw_bookmaker in enumerate(bookmakers):
         bookmaker = _mapping(raw_bookmaker, f"event.bookmakers[{index}]")
         if _text(bookmaker.get("key"), "bookmaker.key") == bookmaker_key:
@@ -131,7 +131,7 @@ def _select_bookmaker(event: Mapping[str, Any], bookmaker_key: str) -> Mapping[s
 
 def _select_h2h_market(bookmaker: Mapping[str, Any]) -> Mapping[str, Any]:
     markets = _sequence(bookmaker.get("markets"), "bookmaker.markets")
-    matches = []
+    matches: list[Mapping[str, Any]] = []
     for index, raw_market in enumerate(markets):
         market = _mapping(raw_market, f"bookmaker.markets[{index}]")
         if _text(market.get("key"), "market.key") == "h2h":
@@ -186,7 +186,11 @@ class TheOddsApiV4MarketClient:
     def __post_init__(self) -> None:
         object.__setattr__(self, "api_key", _require_text(self.api_key, "api_key"))
         object.__setattr__(self, "sport_key", _require_text(self.sport_key, "sport_key"))
-        object.__setattr__(self, "bookmaker_key", _require_text(self.bookmaker_key, "bookmaker_key"))
+        object.__setattr__(
+            self,
+            "bookmaker_key",
+            _require_text(self.bookmaker_key, "bookmaker_key"),
+        )
         object.__setattr__(self, "client_id", _require_text(self.client_id, "client_id"))
         if isinstance(self.kickoff_tolerance_hours, bool) or not isinstance(
             self.kickoff_tolerance_hours, (int, float)
