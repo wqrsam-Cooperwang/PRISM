@@ -65,12 +65,10 @@ class ScorelineEngine:
             effective_home_xg += scenario_weight * home_rate
             effective_away_xg += scenario_weight * away_rate
             home_probs = tuple(
-                self._poisson_probability(home_rate, goals)
-                for goals in range(self.max_goals + 1)
+                self._poisson_probability(home_rate, goals) for goals in range(self.max_goals + 1)
             )
             away_probs = tuple(
-                self._poisson_probability(away_rate, goals)
-                for goals in range(self.max_goals + 1)
+                self._poisson_probability(away_rate, goals) for goals in range(self.max_goals + 1)
             )
             for home_goals in range(self.max_goals + 1):
                 for away_goals in range(self.max_goals + 1):
@@ -130,12 +128,7 @@ class ScorelineEngine:
             raise ValueError("Scoreline expected-goal inputs require both home and away values")
         home_xg = float(home_value)
         away_xg = float(away_value)
-        invalid = (
-            not isfinite(home_xg)
-            or not isfinite(away_xg)
-            or home_xg < 0.0
-            or away_xg < 0.0
-        )
+        invalid = not isfinite(home_xg) or not isfinite(away_xg) or home_xg < 0.0 or away_xg < 0.0
         if invalid:
             raise ValueError("Scoreline expected-goal inputs must be finite and non-negative")
         return home_xg, away_xg
