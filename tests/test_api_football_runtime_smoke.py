@@ -37,7 +37,11 @@ def _request() -> ProviderFetchRequest:
         away_team_name="Halmstads BK",
         season="2026",
     )
-    return ProviderFetchRequest(request_id="api-football-smoke-001", target=target, requested_at=NOW)
+    return ProviderFetchRequest(
+        request_id="api-football-smoke-001",
+        target=target,
+        requested_at=NOW,
+    )
 
 
 def _statistics_payload(team_id: int) -> bytes:
