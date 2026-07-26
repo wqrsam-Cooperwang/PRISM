@@ -43,14 +43,13 @@ class ScorelineEngine:
                 ),
             )
 
-        self._validate_expected_goals(eligible)
         xg_weights = family_capped_weights(eligible, use_assumption_family=True)
         weighted_models = tuple(zip(eligible, xg_weights, strict=True))
         base_home_xg = sum(
-            float(model.expected_home_goals) * weight for model, weight in weighted_models
+            self._expected_goals(model)[0] * weight for model, weight in weighted_models
         )
         base_away_xg = sum(
-            float(model.expected_away_goals) * weight for model, weight in weighted_models
+            self._expected_goals(model)[1] * weight for model, weight in weighted_models
         )
 
         scenarios = self._scenario_rates(base_home_xg, base_away_xg)
@@ -124,18 +123,22 @@ class ScorelineEngine:
         )
 
     @staticmethod
-    def _validate_expected_goals(models: tuple[ModelOutput, ...]) -> None:
-        for model in models:
-            home_xg = float(model.expected_home_goals)
-            away_xg = float(model.expected_away_goals)
-            invalid = (
-                not isfinite(home_xg)
-                or not isfinite(away_xg)
-                or home_xg < 0.0
-                or away_xg < 0.0
-            )
-            if invalid:
-                raise ValueError("Scoreline expected-goal inputs must be finite and non-negative")
+    def _expected_goals(model: ModelOutput) -> tuple[float, float]:
+        home_value = model.expected_home_goals
+        away_value = model.expected_away_goals
+        if home_value is None or away_value is None:
+            raise ValueError("Scoreline expected-goal inputs require both home and away values")
+        home_xg = float(home_value)
+        away_xg = float(away_value)
+        invalid = (
+            not isfinite(home_xg)
+            or not isfinite(away_xg)
+            or home_xg < 0.0
+            or away_xg < 0.0
+        )
+        if invalid:
+            raise ValueError("Scoreline expected-goal inputs must be finite and non-negative")
+        return home_xg, away_xg
 
     def _scenario_rates(
         self,
