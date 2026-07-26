@@ -25,6 +25,7 @@ from src.acquisition.runtime_config import (
     build_the_odds_api_market_client,
 )
 from src.acquisition.the_odds_api import TheOddsApiV4MarketClient
+from src.acquisition.the_sports_db import TheSportsDbScheduleClient
 
 __all__ = [
     "ApiFootballIdentityResolver",
@@ -39,6 +40,7 @@ __all__ = [
     "ProviderClient",
     "ProviderFetchRequest",
     "TheOddsApiV4MarketClient",
+    "TheSportsDbScheduleClient",
     "acquire_source_envelopes",
     "build_api_football_team_statistics_client",
     "build_the_odds_api_market_client",
