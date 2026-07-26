@@ -93,7 +93,7 @@ class ScorelineOutput:
             if not self.source_model_ids:
                 raise ValueError("available scoreline output requires source models")
             if len(self.top_scorelines) != 3:
-                raise ValueError("available scoreline output requires exactly three top candidates")
+                raise ValueError("available scoreline output requires exactly three candidates")
             if len(self.recommended_scorelines) != 2:
                 raise ValueError("available scoreline output requires exactly two recommendations")
             if len(set(self.recommended_scorelines)) != 2:
