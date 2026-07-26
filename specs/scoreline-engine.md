@@ -1,33 +1,72 @@
-# PRISM Scoreline Engine Specification
+# PRISM Exact Score Engine Specification
 
 Status: Draft
-Version: 1.0.0
+Version: 2.1.0
 
 ## 1. Purpose
 
-The Scoreline Engine converts model-provided expected-goal estimates into a transparent scoreline probability distribution for presentation and downstream reporting.
+PRISM Exact Score V2.1 converts governed model outputs into an auditable exact-score distribution while controlling correlated evidence, static-score assumptions, and duplicated scoreline recommendations.
 
-It is an output layer, not a decision authority. It must run after the Decision Engine and must not modify consensus, confidence, rules, adjustment, or decision outputs.
+The scoreline layer remains downstream of Decision. It must never promote or change a betting decision.
 
 ## 2. Scientific Boundary
 
-A 1X2 probability vector does not uniquely determine an exact-score distribution. Therefore PRISM V1 must not infer scorelines from 1X2 probabilities alone.
+A 1X2 vector does not uniquely determine an exact-score distribution. V2.1 therefore requires one or more model outputs that supply both home and away expected goals.
 
-Scoreline prediction is available only when at least one model output provides both `expected_home_goals` and `expected_away_goals`.
+Projected events are not confirmed events. Scenario components are modelling branches, not claims that a specific match state will occur.
 
-## 3. V1 Method
+## 3. Correlated Evidence Control
 
-1. Select model outputs that provide both expected-goal values.
-2. Compute the equal-weight arithmetic mean of home expected goals and away expected goals.
-3. Use independent Poisson distributions for home and away goals.
-4. Evaluate the joint score grid from 0 through 10 goals for each team.
-5. Rank scorelines by joint probability using deterministic tie-breaking: lower total goals, then lower home goals, then lower away goals.
-6. Return the three highest-probability scorelines.
-7. Report probability mass outside the evaluated grid as `tail_mass`.
+Models may share the same evidence family or latent assumption. V2.1 must prevent multiple highly correlated models from receiving the same voting power as independent evidence.
 
-The independent Poisson assumption is a baseline modelling assumption and must be identified in the output method and rationale. It is not treated as a proven description of football scoring dependence.
+1. Every model belongs to an evidence family.
+2. A model may declare `evidence_family` in diagnostics.
+3. Otherwise deterministic fallbacks classify market, Elo, team-statistics, or model-specific families.
+4. Each family receives at most one unit of aggregate voting mass before normalization.
+5. Models inside a family divide that family mass.
+6. Market-derived models therefore cannot multiply market evidence by appearing under multiple model IDs.
+7. Effective family weights must be recorded in consensus rationale.
 
-## 4. Output Contract
+This implements the governance principle: evidence cannot vote twice.
+
+## 4. Shared-Assumption Penalty for xG Sources
+
+Expected-goal sources may also share a latent assumption. V2.1 applies the same family-cap principle when combining xG inputs.
+
+A model may declare `assumption_family` in diagnostics. Otherwise its evidence family is used. This prevents several xG models built from substantially the same information from dominating the scoreline distribution.
+
+## 5. Scenario-Mixture Scoreline Engine
+
+V2.1 replaces the single static Poisson world with a deterministic mixture of conditional game-state scenarios.
+
+The default scenario mixture is:
+
+- balanced state: 54%;
+- home scores first / away chases: 12%;
+- away scores first / home chases: 12%;
+- early-open game: 14%;
+- symmetric defensive-tail floor: 8%.
+
+Each scenario uses transparent Poisson marginals with scenario-specific rate adjustments. The final scoreline probability for each cell is the weighted sum across scenarios.
+
+The symmetric defensive-tail component uses a minimum scoring rate for either team. Its purpose is not to assert that a weak attack is strong; it prevents the model from collapsing reverse-score tails to unrealistically negligible values.
+
+Scenario weights and transforms are fixed, versioned defaults. They may only be changed through out-of-sample validation and a version change.
+
+## 6. Dual-Score Diversity Selector
+
+V2.1 distinguishes analytical Top 3 scorelines from the two formal recommended scorelines.
+
+1. `top_scorelines` keeps the three highest raw mixture probabilities for audit and backward compatibility.
+2. The first recommended score is the highest-probability scoreline.
+3. The second score is chosen from remaining candidates using a diversity-adjusted score.
+4. Candidates sharing the same result direction as the first score receive a shared-assumption penalty.
+5. Candidates sharing the same clean-sheet structure receive an additional penalty.
+6. The selector remains deterministic and never changes the underlying probability distribution.
+
+The objective is coverage of a genuinely different match path rather than two adjacent scores supported by the same latent story.
+
+## 7. Output Contract
 
 `ScorelineOutput` contains:
 
@@ -37,36 +76,40 @@ The independent Poisson assumption is a baseline modelling assumption and must b
 - `expected_home_goals`
 - `expected_away_goals`
 - `top_scorelines`
+- `recommended_scorelines`
 - `grid_probability_mass`
 - `tail_mass`
 - `rationale`
 
-Each `ScorelineCandidate` contains:
+When xG inputs are unavailable, the engine returns `available = false` and does not fabricate scoreline probabilities.
 
-- `home_goals`
-- `away_goals`
-- `probability`
+## 8. Governance
 
-When expected-goal inputs are unavailable, the engine returns `available = false`, empty candidates, and an explicit rationale rather than fabricating scoreline probabilities.
+The V2.1 scoreline system:
 
-## 5. Governance
-
-The Scoreline Engine:
-
-- runs after Decision;
+- runs only after Decision;
 - never changes DecisionAction;
-- never promotes `NO_BET`, `WATCH`, or `NO_DECISION` to `CANDIDATE`;
-- never creates expected-goal values from odds or 1X2 consensus;
+- never infers xG from 1X2 probabilities alone;
+- caps correlated evidence families;
+- penalizes shared xG assumptions;
+- preserves a symmetric defensive tail;
+- treats game-state scenarios as probabilistic branches rather than confirmed events;
+- preserves raw Top 3 probabilities for audit;
+- emits exactly two diversified recommended scorelines;
 - remains deterministic for identical inputs.
 
-## 6. Acceptance Criteria
+## 9. Acceptance Criteria
 
-The engine is accepted when automated tests verify:
+Automated tests must verify:
 
-1. missing xG produces an unavailable output;
-2. one or more valid xG sources produce Top 3 scorelines;
-3. source model IDs are auditable;
-4. probabilities are finite and bounded;
-5. grid mass plus tail mass equals one within tolerance;
-6. input MatchContext remains immutable;
-7. Scoreline runs after Decision in the canonical orchestrator.
+1. correlated model families have capped aggregate voting mass;
+2. independent evidence families retain independent voting mass;
+3. correlated xG sources cannot dominate xG aggregation by duplication;
+4. scenario probabilities are normalized and deterministic;
+5. reverse-score tails remain non-zero under highly asymmetric base xG;
+6. Top 3 remains probability-ranked;
+7. exactly two recommended scores are produced;
+8. the second recommendation receives a penalty when it shares the first score's result direction or clean-sheet assumption;
+9. grid mass plus tail mass equals one within tolerance;
+10. missing xG remains fail-closed;
+11. Decision and upstream governed outputs remain unchanged.
