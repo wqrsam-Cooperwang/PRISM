@@ -28,7 +28,9 @@ class LiveTeamStatisticsSmokeSummary:
     away_retrieved_at: datetime
 
 
-def _validate_envelopes(envelopes: tuple[SourceEnvelope, ...]) -> tuple[SourceEnvelope, SourceEnvelope]:
+def _validate_envelopes(
+    envelopes: tuple[SourceEnvelope, ...],
+) -> tuple[SourceEnvelope, SourceEnvelope]:
     if len(envelopes) != 2:
         raise RuntimeError("Live team-statistics smoke test expected exactly two envelopes")
     home, away = envelopes
