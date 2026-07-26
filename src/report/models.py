@@ -90,6 +90,7 @@ class ScorelineReport:
     expected_home_goals: float | None = None
     expected_away_goals: float | None = None
     top_scorelines: tuple[ScorelineCandidateReport, ...] = ()
+    recommended_scorelines: tuple[ScorelineCandidateReport, ...] = ()
     source_model_ids: tuple[str, ...] = ()
     grid_probability_mass: float = 0.0
     tail_mass: float = 1.0
