@@ -41,7 +41,10 @@ def test_v21_diversity_can_break_legacy_shared_story_pair() -> None:
 
     assert comparison.v1.shared_story_pair is True
     assert comparison.v21.shared_story_pair is False
-    assert comparison.v21.minimum_manhattan_distance <= comparison.v1.minimum_manhattan_distance
+    assert (
+        comparison.v21.minimum_manhattan_distance
+        <= comparison.v1.minimum_manhattan_distance
+    )
 
 
 def test_regression_summary_counts_hits_distance_and_story_pairs() -> None:
