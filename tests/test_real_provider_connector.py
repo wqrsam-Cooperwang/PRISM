@@ -102,9 +102,7 @@ def test_stdlib_transport_converts_http_error_to_response(monkeypatch) -> None:
         raise error
 
     monkeypatch.setattr("src.connectors.transport.urlopen", fake_urlopen)
-    response = StdlibHttpTransport().send(
-        HttpRequest(method="GET", url="https://provider.example")
-    )
+    response = StdlibHttpTransport().send(HttpRequest(method="GET", url="https://provider.example"))
 
     assert response.status_code == 503
     assert response.headers["Retry-After"] == "1"
