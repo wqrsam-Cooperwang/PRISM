@@ -54,7 +54,7 @@ class ConsensusEngine:
         )
         family_summary = ",".join(
             f"{model.model_id}:{evidence_family(model)}:{weight:.6f}"
-            for model, weight in zip(models, weights)
+            for model, weight in zip(models, weights, strict=True)
         )
 
         output = ConsensusOutput(
