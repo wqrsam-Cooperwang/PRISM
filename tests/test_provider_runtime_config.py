@@ -8,9 +8,7 @@ from src.connectors import FixtureHttpTransport, RetryPolicy
 
 
 def test_runtime_config_reads_required_secret_and_defaults() -> None:
-    config = OddsProviderRuntimeConfig.from_environment(
-        {"THE_ODDS_API_KEY": " secret-key "}
-    )
+    config = OddsProviderRuntimeConfig.from_environment({"THE_ODDS_API_KEY": " secret-key "})
 
     assert config.api_key == "secret-key"
     assert config.sport_key == "soccer_korea_kleague1"
@@ -46,9 +44,7 @@ def test_runtime_config_fails_closed_for_missing_or_blank_values() -> None:
 
 
 def test_provider_factory_keeps_secret_out_of_repr_and_uses_config() -> None:
-    config = OddsProviderRuntimeConfig.from_environment(
-        {"THE_ODDS_API_KEY": "secret-key"}
-    )
+    config = OddsProviderRuntimeConfig.from_environment({"THE_ODDS_API_KEY": "secret-key"})
     transport = FixtureHttpTransport([])
     policy = RetryPolicy(max_attempts=1)
 
