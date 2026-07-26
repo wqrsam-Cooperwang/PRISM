@@ -1,6 +1,10 @@
 """Public provider acquisition API for PRISM."""
 
 from src.acquisition.api_football import ApiFootballTeamStatisticsClient
+from src.acquisition.api_football_identity import (
+    ApiFootballIdentityResolver,
+    ApiFootballResolvedIdentity,
+)
 from src.acquisition.api_football_runtime import (
     ApiFootballRuntimeConfig,
     build_api_football_team_statistics_client,
@@ -23,6 +27,8 @@ from src.acquisition.runtime_config import (
 from src.acquisition.the_odds_api import TheOddsApiV4MarketClient
 
 __all__ = [
+    "ApiFootballIdentityResolver",
+    "ApiFootballResolvedIdentity",
     "ApiFootballRuntimeConfig",
     "ApiFootballTeamStatisticsClient",
     "FixtureProviderClient",
