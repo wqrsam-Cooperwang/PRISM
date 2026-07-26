@@ -39,7 +39,7 @@ class HttpRequest:
     method: str
     url: str
     headers: Mapping[str, str] = field(default_factory=dict)
-    query: Mapping[str, str] = field(default_factory=dict)
+    query: Mapping[str, str] = field(default_factory=dict, repr=False)
     timeout_seconds: float = 10.0
 
     def __post_init__(self) -> None:
