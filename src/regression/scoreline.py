@@ -178,9 +178,7 @@ def _metrics(
 ) -> ScorelineEngineMetrics:
     actual = (actual_home, actual_away)
     scores = tuple((item.home_goals, item.away_goals) for item in pair)
-    distances = tuple(
-        abs(home - actual_home) + abs(away - actual_away) for home, away in scores
-    )
+    distances = tuple(abs(home - actual_home) + abs(away - actual_away) for home, away in scores)
     return ScorelineEngineMetrics(
         recommendations=pair,
         primary_exact_hit=scores[0] == actual,
@@ -219,12 +217,8 @@ def summarize_scoreline_regression(
         v21_primary_hits=sum(item.v21.primary_exact_hit for item in comparisons),
         v1_dual_hits=sum(item.v1.dual_exact_hit for item in comparisons),
         v21_dual_hits=sum(item.v21.dual_exact_hit for item in comparisons),
-        v1_mean_minimum_distance=mean(
-            item.v1.minimum_manhattan_distance for item in comparisons
-        ),
-        v21_mean_minimum_distance=mean(
-            item.v21.minimum_manhattan_distance for item in comparisons
-        ),
+        v1_mean_minimum_distance=mean(item.v1.minimum_manhattan_distance for item in comparisons),
+        v21_mean_minimum_distance=mean(item.v21.minimum_manhattan_distance for item in comparisons),
         v1_shared_story_pairs=sum(item.v1.shared_story_pair for item in comparisons),
         v21_shared_story_pairs=sum(item.v21.shared_story_pair for item in comparisons),
         v21_distance_improved_cases=sum(change < 0 for change in changes),
