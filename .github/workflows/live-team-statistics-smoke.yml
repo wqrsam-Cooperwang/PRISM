@@ -16,25 +16,13 @@ on:
         required: true
         default: Allsvenskan
         type: string
-      kickoff:
-        description: Kickoff as timezone-aware ISO-8601 timestamp
-        required: true
-        type: string
-      league_id:
-        description: API-Football league ID
-        required: true
-        type: string
       season:
         description: API-Football season year
         required: true
         default: "2026"
         type: string
-      home_team_id:
-        description: API-Football home team ID
-        required: true
-        type: string
-      away_team_id:
-        description: API-Football away team ID
+      kickoff:
+        description: Kickoff as timezone-aware ISO-8601 timestamp
         required: true
         type: string
 
@@ -46,10 +34,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
-      PRISM_API_FOOTBALL_LEAGUE_ID: ${{ inputs.league_id }}
-      PRISM_API_FOOTBALL_SEASON: ${{ inputs.season }}
-      PRISM_API_FOOTBALL_HOME_TEAM_ID: ${{ inputs.home_team_id }}
-      PRISM_API_FOOTBALL_AWAY_TEAM_ID: ${{ inputs.away_team_id }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -68,10 +52,12 @@ jobs:
           HOME_TEAM: ${{ inputs.home_team }}
           AWAY_TEAM: ${{ inputs.away_team }}
           COMPETITION: ${{ inputs.competition }}
+          SEASON: ${{ inputs.season }}
           KICKOFF: ${{ inputs.kickoff }}
         run: >-
           python scripts/live_team_statistics_smoke.py
           --home "$HOME_TEAM"
           --away "$AWAY_TEAM"
           --competition "$COMPETITION"
+          --season "$SEASON"
           --kickoff "$KICKOFF"
