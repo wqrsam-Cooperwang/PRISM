@@ -45,13 +45,12 @@ class ScorelineEngine:
 
         self._validate_expected_goals(eligible)
         xg_weights = family_capped_weights(eligible, use_assumption_family=True)
+        weighted_models = tuple(zip(eligible, xg_weights, strict=True))
         base_home_xg = sum(
-            float(model.expected_home_goals) * weight
-            for model, weight in zip(eligible, xg_weights)
+            float(model.expected_home_goals) * weight for model, weight in weighted_models
         )
         base_away_xg = sum(
-            float(model.expected_away_goals) * weight
-            for model, weight in zip(eligible, xg_weights)
+            float(model.expected_away_goals) * weight for model, weight in weighted_models
         )
 
         scenarios = self._scenario_rates(base_home_xg, base_away_xg)
@@ -100,7 +99,7 @@ class ScorelineEngine:
         tail_mass = max(0.0, 1.0 - grid_mass)
         assumption_summary = ",".join(
             f"{model.model_id}:{assumption_family(model)}:{weight:.6f}"
-            for model, weight in zip(eligible, xg_weights)
+            for model, weight in weighted_models
         )
 
         return ScorelineOutput(
