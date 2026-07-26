@@ -112,7 +112,7 @@ def _sort_key(rule: Rule) -> tuple[int, int, str]:
 
 
 def _effects_from_output(output: RuleOutput) -> tuple[str, ...]:
-    effects = output["effects"]
+    effects = output.get("effects", output.get("effective_effects", ()))
     if not isinstance(effects, tuple) or not all(isinstance(item, str) for item in effects):
         raise TypeError("Rule effects must be a tuple of strings")
     return effects
@@ -190,10 +190,11 @@ class RuleEngine:
         self._ruleset_version = ruleset_version
 
     def run(self, context: MatchContext) -> MatchContext:
-        outputs = tuple(
+        upstream = tuple(dict(output) for output in context.rule_outputs)
+        evaluated = tuple(
             output for rule in self._rules if (output := rule.evaluate(context)) is not None
         )
         return replace(
             context,
-            rule_outputs=_resolve_outputs(outputs, self._ruleset_version),
+            rule_outputs=_resolve_outputs((*upstream, *evaluated), self._ruleset_version),
         )
