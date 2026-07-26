@@ -145,8 +145,7 @@ def _baseline_availability(bundle: IntelligenceBundle) -> tuple[bool, bool, bool
         claim.claim_key for claim in usable if claim.category == IntelligenceCategory.MARKET
     }
     team_statistics_available = all(
-        _TEAM_STATISTICS_REQUIRED_KEYS.issubset(team_statistics[side])
-        for side in ("home", "away")
+        _TEAM_STATISTICS_REQUIRED_KEYS.issubset(team_statistics[side]) for side in ("home", "away")
     )
     return (
         elo_sides == {"home", "away"},
