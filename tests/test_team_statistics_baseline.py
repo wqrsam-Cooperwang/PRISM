@@ -99,9 +99,10 @@ def test_team_statistics_probability_model_is_normalized_and_directional() -> No
     )
 
     output = TeamStatisticsProbabilityModel().predict(features)
+    probability_total = (
+        output.home_probability + output.draw_probability + output.away_probability
+    )
 
     assert output.home_probability > output.away_probability
-    assert output.home_probability + output.draw_probability + output.away_probability == pytest.approx(
-        1.0
-    )
+    assert probability_total == pytest.approx(1.0)
     assert output.diagnostics["method"] == "provisional_team_statistics_davidson"
