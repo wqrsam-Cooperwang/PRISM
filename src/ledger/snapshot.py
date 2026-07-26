@@ -7,6 +7,7 @@ from hashlib import sha256
 from typing import Any
 
 from src.collection.readiness import CollectionReadinessGateResult
+from src.domain.models import ModelOutput
 from src.features.models import FeatureVector
 from src.intelligence.models import Observation
 from src.ledger.models import PredictionLedgerSnapshot
@@ -58,6 +59,19 @@ def _feature_dict(features: FeatureVector) -> dict[str, Any]:
     }
 
 
+def _model_output_dict(model: ModelOutput) -> dict[str, Any]:
+    return {
+        "model_id": model.model_id,
+        "model_version": model.model_version,
+        "home_probability": model.home_probability,
+        "draw_probability": model.draw_probability,
+        "away_probability": model.away_probability,
+        "expected_home_goals": model.expected_home_goals,
+        "expected_away_goals": model.expected_away_goals,
+        "diagnostics": dict(model.diagnostics),
+    }
+
+
 def _prediction_id(report: PredictionReport) -> str:
     identity = "|".join(
         (
@@ -77,6 +91,7 @@ def build_prediction_snapshot(
     features: FeatureVector,
     *,
     frozen_at: datetime,
+    model_outputs: tuple[ModelOutput, ...] = (),
 ) -> PredictionLedgerSnapshot:
     """Project one governed production result into a durable frozen snapshot."""
 
@@ -90,6 +105,7 @@ def build_prediction_snapshot(
         "observations": [_observation_dict(item) for item in observations],
         "collection_gate": _gate_dict(gate),
         "features": _feature_dict(features),
+        "model_outputs": [_model_output_dict(item) for item in model_outputs],
     }
     return PredictionLedgerSnapshot(
         prediction_id=_prediction_id(report),
