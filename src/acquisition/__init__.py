@@ -2,6 +2,7 @@
 
 from src.acquisition.fixture import FixtureProviderClient
 from src.acquisition.interface import ProviderClient
+from src.acquisition.live_production import run_live_market_prediction_path
 from src.acquisition.live_smoke import LiveOddsSmokeSummary, run_live_odds_smoke
 from src.acquisition.models import ProviderFetchRequest
 from src.acquisition.production_path import run_acquired_prediction_path
@@ -23,5 +24,6 @@ __all__ = [
     "acquire_source_envelopes",
     "build_the_odds_api_market_client",
     "run_acquired_prediction_path",
+    "run_live_market_prediction_path",
     "run_live_odds_smoke",
 ]
