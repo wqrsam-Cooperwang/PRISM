@@ -1,0 +1,77 @@
+name: Live Team Statistics Smoke Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      home_team:
+        description: Home team name
+        required: true
+        type: string
+      away_team:
+        description: Away team name
+        required: true
+        type: string
+      competition:
+        description: Competition label
+        required: true
+        default: Allsvenskan
+        type: string
+      kickoff:
+        description: Kickoff as timezone-aware ISO-8601 timestamp
+        required: true
+        type: string
+      league_id:
+        description: API-Football league ID
+        required: true
+        type: string
+      season:
+        description: API-Football season year
+        required: true
+        default: "2026"
+        type: string
+      home_team_id:
+        description: API-Football home team ID
+        required: true
+        type: string
+      away_team_id:
+        description: API-Football away team ID
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  live-team-statistics-smoke:
+    runs-on: ubuntu-latest
+    env:
+      API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+      PRISM_API_FOOTBALL_LEAGUE_ID: ${{ inputs.league_id }}
+      PRISM_API_FOOTBALL_SEASON: ${{ inputs.season }}
+      PRISM_API_FOOTBALL_HOME_TEAM_ID: ${{ inputs.home_team_id }}
+      PRISM_API_FOOTBALL_AWAY_TEAM_ID: ${{ inputs.away_team_id }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install project
+        run: python -m pip install --upgrade pip && python -m pip install -e .
+
+      - name: Acquire live team statistics
+        env:
+          HOME_TEAM: ${{ inputs.home_team }}
+          AWAY_TEAM: ${{ inputs.away_team }}
+          COMPETITION: ${{ inputs.competition }}
+          KICKOFF: ${{ inputs.kickoff }}
+        run: >-
+          python scripts/live_team_statistics_smoke.py
+          --home "$HOME_TEAM"
+          --away "$AWAY_TEAM"
+          --competition "$COMPETITION"
+          --kickoff "$KICKOFF"
