@@ -34,23 +34,27 @@ class RetryPolicy:
 def send_with_retry(
     transport: HttpTransport,
     request: HttpRequest,
-    policy: RetryPolicy = RetryPolicy(),
+    policy: RetryPolicy | None = None,
 ) -> HttpResponse:
     """Execute one request with bounded retry and fail-closed HTTP status handling."""
 
+    active_policy = RetryPolicy() if policy is None else policy
     last_transport_error: HttpTransportError | None = None
-    for attempt in range(1, policy.max_attempts + 1):
+    for attempt in range(1, active_policy.max_attempts + 1):
         try:
             response = transport.send(request)
         except HttpTransportError as exc:
             last_transport_error = exc
-            if attempt == policy.max_attempts:
+            if attempt == active_policy.max_attempts:
                 raise
             continue
 
         if 200 <= response.status_code <= 299:
             return response
-        if response.status_code in policy.retryable_statuses and attempt < policy.max_attempts:
+        if (
+            response.status_code in active_policy.retryable_statuses
+            and attempt < active_policy.max_attempts
+        ):
             continue
         raise HttpStatusError(response.status_code)
 
