@@ -6,12 +6,12 @@ from collections.abc import Iterable
 from dataclasses import dataclass, replace
 from datetime import datetime
 
+from src.collection.degraded_governance import apply_collection_governance
 from src.collection.interface import ObservationAdapter
 from src.collection.models import SourceEnvelope
 from src.collection.readiness import (
     CollectionGateDecision,
     CollectionReadinessGateResult,
-    apply_collection_governance,
     evaluate_collection_readiness,
 )
 from src.collection.runner import collect_observations
