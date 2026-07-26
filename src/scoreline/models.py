@@ -63,8 +63,12 @@ class ScorelineOutput:
         if len(set(model_ids)) != len(model_ids):
             raise ValueError("source_model_ids must be unique")
         object.__setattr__(self, "source_model_ids", model_ids)
-        object.__setattr__(self, "top_scorelines", tuple(self.top_scorelines))
-        object.__setattr__(self, "recommended_scorelines", tuple(self.recommended_scorelines))
+        top_scorelines = tuple(self.top_scorelines)
+        recommendations = tuple(self.recommended_scorelines)
+        if self.available and not recommendations and len(top_scorelines) >= 2:
+            recommendations = top_scorelines[:2]
+        object.__setattr__(self, "top_scorelines", top_scorelines)
+        object.__setattr__(self, "recommended_scorelines", recommendations)
         object.__setattr__(self, "rationale", tuple(self.rationale))
         grid_mass = _unit_interval(self.grid_probability_mass, "grid_probability_mass")
         tail_mass = _unit_interval(self.tail_mass, "tail_mass")
