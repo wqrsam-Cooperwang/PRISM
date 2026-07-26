@@ -41,16 +41,11 @@ def test_v21_diversity_can_break_legacy_shared_story_pair() -> None:
 
     assert comparison.v1.shared_story_pair is True
     assert comparison.v21.shared_story_pair is False
-    assert (
-        comparison.v21.minimum_manhattan_distance
-        <= comparison.v1.minimum_manhattan_distance
-    )
+    assert comparison.v21.minimum_manhattan_distance <= comparison.v1.minimum_manhattan_distance
 
 
 def test_regression_summary_counts_hits_distance_and_story_pairs() -> None:
-    first = compare_scoreline_case(
-        ScorelineRegressionCase("first", (_model("a", 1.7, 0.5),), 1, 1)
-    )
+    first = compare_scoreline_case(ScorelineRegressionCase("first", (_model("a", 1.7, 0.5),), 1, 1))
     second = compare_scoreline_case(
         ScorelineRegressionCase("second", (_model("b", 1.2, 1.0),), 1, 1)
     )
