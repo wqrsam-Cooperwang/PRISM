@@ -46,6 +46,7 @@ class ScorelineOutput:
     expected_home_goals: float | None = None
     expected_away_goals: float | None = None
     top_scorelines: tuple[ScorelineCandidate, ...] = ()
+    recommended_scorelines: tuple[ScorelineCandidate, ...] = ()
     grid_probability_mass: float = 0.0
     tail_mass: float = 1.0
     rationale: tuple[str, ...] = ()
@@ -63,6 +64,7 @@ class ScorelineOutput:
             raise ValueError("source_model_ids must be unique")
         object.__setattr__(self, "source_model_ids", model_ids)
         object.__setattr__(self, "top_scorelines", tuple(self.top_scorelines))
+        object.__setattr__(self, "recommended_scorelines", tuple(self.recommended_scorelines))
         object.__setattr__(self, "rationale", tuple(self.rationale))
         grid_mass = _unit_interval(self.grid_probability_mass, "grid_probability_mass")
         tail_mass = _unit_interval(self.tail_mass, "tail_mass")
@@ -87,9 +89,13 @@ class ScorelineOutput:
             if not self.source_model_ids:
                 raise ValueError("available scoreline output requires source models")
             if len(self.top_scorelines) != 3:
-                raise ValueError("available scoreline output requires exactly three candidates")
+                raise ValueError("available scoreline output requires exactly three top candidates")
+            if len(self.recommended_scorelines) != 2:
+                raise ValueError("available scoreline output requires exactly two recommendations")
+            if len(set(self.recommended_scorelines)) != 2:
+                raise ValueError("recommended scorelines must be distinct")
         else:
             if self.expected_home_goals is not None or self.expected_away_goals is not None:
                 raise ValueError("unavailable scoreline output cannot contain expected goals")
-            if self.source_model_ids or self.top_scorelines:
+            if self.source_model_ids or self.top_scorelines or self.recommended_scorelines:
                 raise ValueError("unavailable scoreline output cannot contain predictions")
