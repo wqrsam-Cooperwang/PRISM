@@ -1,0 +1,154 @@
+{
+  "dataset_id": "legacy-airtable-2026-07-v1",
+  "scope": "scoreline_only",
+  "source": "Airtable PRISM Enterprise Database v3.0 — MASTER",
+  "notes": [
+    "Cases use frozen aggregate expected goals from Predictions plus final scores from Reviews.",
+    "They test V1 versus V2.1 scoreline generation only; they do not reconstruct underlying model evidence weights.",
+    "A neutral 1X2 probability wrapper is used when constructing ModelOutput because scoreline replay consumes expected goals, not 1X2 probabilities."
+  ],
+  "cases": [
+    {
+      "case_id": "PRED-20260719-M04-LOCKED",
+      "match_id": "PRISM-20260719-M04-HAL-HAC",
+      "home_xg": 1.0,
+      "away_xg": 3.0,
+      "actual_home_goals": 0,
+      "actual_away_goals": 2,
+      "legacy_primary_score": "1-3",
+      "legacy_secondary_score": "0-2 / 1-2"
+    },
+    {
+      "case_id": "P-UCL-20260715-GYO-VIK-V3.2",
+      "match_id": "UCL-20260715-GYO-VIK",
+      "home_xg": 1.55,
+      "away_xg": 1.05,
+      "actual_home_goals": 2,
+      "actual_away_goals": 2,
+      "legacy_primary_score": "1-1",
+      "legacy_secondary_score": "2-1"
+    },
+    {
+      "case_id": "PRED-20260718-JEJ-POH-FINAL",
+      "match_id": "MATCH-KLEAGUE1-20260718-JEJ-POH",
+      "home_xg": 0.8,
+      "away_xg": 1.3,
+      "actual_home_goals": 2,
+      "actual_away_goals": 1,
+      "legacy_primary_score": "0-1",
+      "legacy_secondary_score": "1-1"
+    },
+    {
+      "case_id": "P-WC-2026-SF-FRA-ESP-V3.2-L2",
+      "match_id": "WC-2026-SF-FRA-ESP",
+      "home_xg": 1.35,
+      "away_xg": 1.05,
+      "actual_home_goals": 0,
+      "actual_away_goals": 2,
+      "legacy_primary_score": "1-0",
+      "legacy_secondary_score": "1-1"
+    },
+    {
+      "case_id": "PRED-20260719-M02-LOCKED",
+      "match_id": "PRISM-20260719-M02-JAR-INT",
+      "home_xg": 0.0,
+      "away_xg": 2.0,
+      "actual_home_goals": 0,
+      "actual_away_goals": 0,
+      "legacy_primary_score": "0-2",
+      "legacy_secondary_score": "0-1 / 1-2"
+    },
+    {
+      "case_id": "PRED-20260719-M05-LOCKED",
+      "match_id": "PRISM-20260719-M05-HAM-DEG",
+      "home_xg": 3.0,
+      "away_xg": 0.0,
+      "actual_home_goals": 4,
+      "actual_away_goals": 0,
+      "legacy_primary_score": "3-0",
+      "legacy_secondary_score": "2-0 / 3-1"
+    },
+    {
+      "case_id": "PRED-20260719-M03-LOCKED",
+      "match_id": "PRISM-20260719-M03-ELF-SIR",
+      "home_xg": 1.0,
+      "away_xg": 2.0,
+      "actual_home_goals": 1,
+      "actual_away_goals": 3,
+      "legacy_primary_score": "1-2",
+      "legacy_secondary_score": "1-1 / 0-1"
+    },
+    {
+      "case_id": "P-UCL-20260715-TNS-SAB-V3.2-L1",
+      "match_id": "UCL-20260715-TNS-SAB",
+      "home_xg": 1.05,
+      "away_xg": 1.55,
+      "actual_home_goals": 1,
+      "actual_away_goals": 2,
+      "legacy_primary_score": "1-1",
+      "legacy_secondary_score": "0-1"
+    }
+  ],
+  "recovery_queue": [
+    {
+      "case_id": "PRED-20260719-M01-LOCKED",
+      "reason": "review final score explicitly marked AET; regulation-time score not frozen"
+    },
+    {
+      "case_id": "P-UCL-20260716-ATE-KLA-V3.2",
+      "reason": "frozen xG exists but no linked final-score review found"
+    },
+    {
+      "case_id": "P-UCL-20260716-SUT-KAI-V3.2",
+      "reason": "frozen xG exists but no linked final-score review found"
+    },
+    {
+      "case_id": "PRED-20260718-KRI-SAR-FINAL",
+      "reason": "frozen xG exists but no linked final-score review found"
+    },
+    {
+      "case_id": "P-SWE-ALL-20260714-DIF-HBK-V3.2",
+      "reason": "final score exists but frozen aggregate xG is missing from Predictions"
+    },
+    {
+      "case_id": "P-2026-0717-001",
+      "reason": "final score exists but frozen aggregate xG is missing from Predictions"
+    },
+    {
+      "case_id": "P-2026-0717-002",
+      "reason": "final score exists but frozen aggregate xG is missing from Predictions"
+    },
+    {
+      "case_id": "P-2026-0717-004",
+      "reason": "final score exists but frozen aggregate xG is missing from Predictions"
+    },
+    {
+      "case_id": "PRED-20260718-GAN-GIM-FINAL",
+      "reason": "final score exists but frozen aggregate xG is missing from Predictions"
+    },
+    {
+      "case_id": "PRED-20260718-DAE-ULS-FINAL",
+      "reason": "final score exists but frozen aggregate xG is missing from Predictions"
+    },
+    {
+      "case_id": "PRED-20260718-INC-JEO-FINAL",
+      "reason": "final score exists but frozen aggregate xG is missing from Predictions"
+    },
+    {
+      "case_id": "PR-LEG-20260712-KFU-BOD",
+      "reason": "legacy prediction score and xG were not frozen reliably"
+    },
+    {
+      "case_id": "PR-LEG-20260712-MAL-GOT",
+      "reason": "legacy prediction score and xG were not frozen reliably"
+    },
+    {
+      "case_id": "PR-LEG-20260712-HAM-KAL",
+      "reason": "legacy prediction score and xG were not frozen reliably"
+    },
+    {
+      "case_id": "PR-LEG-20260712-VAS-DEG",
+      "reason": "legacy prediction score and xG were not frozen reliably"
+    }
+  ]
+}
