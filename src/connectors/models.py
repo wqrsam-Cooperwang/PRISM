@@ -38,7 +38,7 @@ class HttpRequest:
 
     method: str
     url: str
-    headers: Mapping[str, str] = field(default_factory=dict)
+    headers: Mapping[str, str] = field(default_factory=dict, repr=False)
     query: Mapping[str, str] = field(default_factory=dict, repr=False)
     timeout_seconds: float = 10.0
 
