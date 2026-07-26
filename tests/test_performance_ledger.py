@@ -6,6 +6,7 @@ from types import SimpleNamespace
 import pytest
 
 from src.collection import CollectionGateDecision, CollectionReadinessGateResult
+from src.domain.models import ModelOutput
 from src.features import FeatureVector
 from src.intelligence import (
     IntelligenceCategory,
@@ -117,6 +118,18 @@ def _features() -> FeatureVector:
     )
 
 
+def _model_output() -> ModelOutput:
+    return ModelOutput(
+        model_id="team-statistics",
+        model_version="test",
+        home_probability=0.51,
+        draw_probability=0.27,
+        away_probability=0.22,
+        expected_home_goals=1.62,
+        expected_away_goals=0.94,
+    )
+
+
 def test_snapshot_contains_auditable_exact_score_and_source_data() -> None:
     snapshot = build_prediction_snapshot(
         _report(),
@@ -174,6 +187,9 @@ def test_formal_prediction_fails_closed_when_persistence_fails(monkeypatch) -> N
         observations=(_observation(),),
         collection_gate=_gate(),
         features=_features(),
+        runtime_result=SimpleNamespace(
+            context=SimpleNamespace(model_outputs=(_model_output(),)),
+        ),
     )
     monkeypatch.setattr(
         formal_module,
