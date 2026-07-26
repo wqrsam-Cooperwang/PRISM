@@ -52,11 +52,12 @@ def test_missing_expected_goals_returns_unavailable_output() -> None:
     assert output.available is False
     assert output.source_model_ids == ()
     assert output.top_scorelines == ()
+    assert output.recommended_scorelines == ()
     assert output.grid_probability_mass == 0.0
     assert output.tail_mass == 1.0
 
 
-def test_scoreline_uses_equal_weight_expected_goals_and_returns_top_three() -> None:
+def test_scoreline_uses_scenario_mixture_and_returns_dual_recommendations() -> None:
     output = ScorelineEngine().run(
         context_with_models(
             (
@@ -67,10 +68,14 @@ def test_scoreline_uses_equal_weight_expected_goals_and_returns_top_three() -> N
     )
 
     assert output.available is True
+    assert output.method == "scenario_mixture_poisson_v2_1"
     assert output.source_model_ids == ("model-a", "model-b")
-    assert output.expected_home_goals == pytest.approx(1.5)
-    assert output.expected_away_goals == pytest.approx(0.9)
+    assert output.expected_home_goals == pytest.approx(1.5795)
+    assert output.expected_away_goals == pytest.approx(0.9477)
     assert len(output.top_scorelines) == 3
+    assert len(output.recommended_scorelines) == 2
+    assert output.recommended_scorelines[0] == output.top_scorelines[0]
+    assert output.recommended_scorelines[0] != output.recommended_scorelines[1]
     assert output.top_scorelines[0].probability >= output.top_scorelines[1].probability
     assert output.top_scorelines[1].probability >= output.top_scorelines[2].probability
     assert output.grid_probability_mass + output.tail_mass == pytest.approx(1.0)
@@ -88,12 +93,14 @@ def test_models_without_complete_expected_goals_are_not_used() -> None:
     )
 
     assert output.source_model_ids == ("eligible",)
-    assert output.expected_home_goals == pytest.approx(1.3)
-    assert output.expected_away_goals == pytest.approx(0.7)
+    assert output.expected_home_goals == pytest.approx(1.3689)
+    assert output.expected_away_goals == pytest.approx(0.7371)
 
 
 def test_invalid_expected_goals_are_rejected() -> None:
-    context = context_with_models((ModelOutput("invalid", "1.0.0", 0.5, 0.3, 0.2, -0.1, 0.9),))
+    context = context_with_models(
+        (ModelOutput("invalid", "1.0.0", 0.5, 0.3, 0.2, -0.1, 0.9),)
+    )
 
     with pytest.raises(ValueError, match="finite and non-negative"):
         ScorelineEngine().run(context)
