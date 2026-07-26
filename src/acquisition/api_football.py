@@ -6,7 +6,6 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import Any, cast
 
-from src.acquisition.interface import ProviderClient
 from src.acquisition.models import ProviderFetchRequest
 from src.collection.models import SourceEnvelope
 from src.connectors import (
@@ -29,7 +28,7 @@ def _mapping(value: Any, field_name: str) -> Mapping[str, Any]:
 
 
 def _sequence(value: Any, field_name: str) -> Sequence[Any]:
-    if isinstance(value, (str, bytes)) or not isinstance(value, Sequence):
+    if isinstance(value, (str, bytes, bytearray)) or not isinstance(value, Sequence):
         raise ProviderSchemaError(f"{field_name} must be an array")
     return cast(Sequence[Any], value)
 
@@ -56,7 +55,9 @@ def _response_object(payload: Mapping[str, Any]) -> Mapping[str, Any]:
         return cast(Mapping[str, Any], response)
     items = _sequence(response, "response")
     if len(items) != 1:
-        raise ProviderSchemaError("API-Football response must contain exactly one team statistics object")
+        raise ProviderSchemaError(
+            "API-Football response must contain exactly one team statistics object"
+        )
     return _mapping(items[0], "response[0]")
 
 
@@ -78,7 +79,7 @@ def _validate_identity(
 
 
 @dataclass(frozen=True)
-class ApiFootballTeamStatisticsClient(ProviderClient):
+class ApiFootballTeamStatisticsClient:
     """Fetch factual pre-match statistics for the target home and away teams."""
 
     api_key: str = field(repr=False)
@@ -86,8 +87,8 @@ class ApiFootballTeamStatisticsClient(ProviderClient):
     season: int
     home_team_id: int
     away_team_id: int
-    transport: HttpTransport
-    retry_policy: RetryPolicy = field(default_factory=RetryPolicy)
+    transport: HttpTransport = field(repr=False)
+    retry_policy: RetryPolicy = field(default_factory=RetryPolicy, repr=False)
     client_id: str = "api-football-team-statistics"
 
     def __post_init__(self) -> None:
