@@ -119,7 +119,8 @@ class ScorelineEngine:
                 "Score probabilities are a deterministic mixture of balanced, first-goal, "
                 "early-open, and symmetric-tail scenarios.",
                 "The defensive-tail scenario applies a symmetric minimum scoring rate of 0.65.",
-                "The two recommendations use a shared-story diversity penalty; raw Top 3 remain audited.",
+                "The two recommendations use a shared-story diversity penalty; "
+                "raw Top 3 remain audited.",
             ),
         )
 
@@ -128,10 +129,20 @@ class ScorelineEngine:
         for model in models:
             home_xg = float(model.expected_home_goals)
             away_xg = float(model.expected_away_goals)
-            if not isfinite(home_xg) or not isfinite(away_xg) or home_xg < 0.0 or away_xg < 0.0:
+            invalid = (
+                not isfinite(home_xg)
+                or not isfinite(away_xg)
+                or home_xg < 0.0
+                or away_xg < 0.0
+            )
+            if invalid:
                 raise ValueError("Scoreline expected-goal inputs must be finite and non-negative")
 
-    def _scenario_rates(self, home_xg: float, away_xg: float) -> dict[str, tuple[float, float]]:
+    def _scenario_rates(
+        self,
+        home_xg: float,
+        away_xg: float,
+    ) -> dict[str, tuple[float, float]]:
         return {
             "balanced": (home_xg, away_xg),
             "home_scores_first": (home_xg * 0.95, away_xg * 1.20),
