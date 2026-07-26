@@ -170,7 +170,7 @@ def test_live_market_data_runs_through_existing_full_production_path() -> None:
 
 
 def test_market_only_live_run_is_rejected_by_existing_collection_gate() -> None:
-    with pytest.raises(ValueError, match="elo baseline inputs are unavailable"):
+    with pytest.raises(ValueError, match="team strength baseline inputs are unavailable"):
         run_live_market_prediction_path(
             _request(),
             (),
