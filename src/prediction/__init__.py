@@ -7,16 +7,22 @@ from src.prediction.collection_path import (
 )
 from src.prediction.interface import PredictionModel
 from src.prediction.path import PredictionPathResult, run_baseline_prediction_path
+from src.prediction.production_path import (
+    FullAutomatedPredictionResult,
+    run_full_automated_prediction_path,
+)
 from src.prediction.runner import run_model_suite, run_prediction_model
 
 __all__ = [
     "CollectedPredictionPathResult",
     "EloProbabilityModel",
+    "FullAutomatedPredictionResult",
     "MarketProbabilityModel",
     "PredictionModel",
     "PredictionPathResult",
     "run_baseline_prediction_path",
     "run_collected_prediction_path",
+    "run_full_automated_prediction_path",
     "run_model_suite",
     "run_prediction_model",
 ]
