@@ -1,7 +1,6 @@
 from datetime import datetime, timezone
 
 import pytest
-
 from src.collection import (
     AvailabilityScheduleAdapter,
     FixtureObservationAdapter,
@@ -191,7 +190,7 @@ def _degraded_envelope() -> SourceEnvelope:
     )
 
 
-def test_degraded_collection_restriction_reaches_final_runtime_and_report() -> None:
+def test_degraded_collection_respects_stricter_evidence_governance() -> None:
     result = run_full_automated_prediction_path(
         _target(),
         (FixtureObservationAdapter(), MarketOdds1X2Adapter()),
@@ -203,11 +202,25 @@ def test_degraded_collection_restriction_reaches_final_runtime_and_report() -> N
     )
 
     assert result.collection_gate.decision.value == "degraded"
+
+    collection_records = tuple(
+        output
+        for output in result.runtime_result.context.rule_outputs
+        if output.get("governance_source") == "collection_readiness_gate"
+    )
+    assert len(collection_records) == 1
+    assert collection_records[0]["collection_gate_decision"] == "degraded"
+    assert collection_records[0]["suppressed_effects"] == ("restrict_high_confidence_action",)
+
     adjustment = result.runtime_result.context.adjustment
     assert adjustment is not None
-    assert "restrict_high_confidence_action" in adjustment.observed_effects
+    assert "block_active_decision" in adjustment.observed_effects
+    assert adjustment.decision_blocked is True
+    assert adjustment.confidence_cap == pytest.approx(0.34)
+
     assert result.report.adjustment is not None
-    assert "restrict_high_confidence_action" in result.report.adjustment.observed_effects
+    assert "block_active_decision" in result.report.adjustment.observed_effects
+    assert result.report.adjustment.decision_blocked is True
 
 
 def test_rejected_collection_stops_before_runtime_and_report() -> None:
