@@ -1,0 +1,61 @@
+name: Live TheSportsDB Smoke Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      home_team:
+        description: Home team name
+        required: true
+        type: string
+      away_team:
+        description: Away team name
+        required: true
+        type: string
+      competition:
+        description: Competition label
+        required: true
+        default: Swedish Allsvenskan
+        type: string
+      season:
+        description: Season label
+        required: true
+        default: "2026"
+        type: string
+      kickoff:
+        description: Kickoff as timezone-aware ISO-8601 timestamp
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  live-thesportsdb-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install project
+        run: python -m pip install --upgrade pip && python -m pip install -e .
+
+      - name: Acquire live TheSportsDB event
+        env:
+          HOME_TEAM: ${{ inputs.home_team }}
+          AWAY_TEAM: ${{ inputs.away_team }}
+          COMPETITION: ${{ inputs.competition }}
+          SEASON: ${{ inputs.season }}
+          KICKOFF: ${{ inputs.kickoff }}
+        run: >-
+          python scripts/live_thesportsdb_smoke.py
+          --home "$HOME_TEAM"
+          --away "$AWAY_TEAM"
+          --competition "$COMPETITION"
+          --season "$SEASON"
+          --kickoff "$KICKOFF"
