@@ -44,7 +44,8 @@ def acquire_source_envelopes(
         raise ValueError("Provider client_ids must be unique")
 
     envelopes: list[SourceEnvelope] = []
-    for client, client_id in sorted(zip(materialized, client_ids), key=lambda item: item[1]):
+    client_pairs = zip(materialized, client_ids, strict=True)
+    for client, client_id in sorted(client_pairs, key=lambda item: item[1]):
         try:
             fetched = tuple(client.fetch(request))
         except Exception as exc:
