@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
@@ -38,18 +39,14 @@ def _single_market_envelope(envelopes: tuple[SourceEnvelope, ...]) -> SourceEnve
     return envelope
 
 
-def _payload_text(payload: Any, key: str) -> str:
-    if not isinstance(payload, dict) and not hasattr(payload, "get"):
-        raise RuntimeError("Live odds smoke payload must be mapping-like")
+def _payload_text(payload: Mapping[str, Any], key: str) -> str:
     value = payload.get(key)
     if not isinstance(value, str) or not value.strip():
         raise RuntimeError(f"Live odds smoke payload is missing {key}")
     return value.strip()
 
 
-def _payload_odds(payload: Any, key: str) -> float:
-    if not isinstance(payload, dict) and not hasattr(payload, "get"):
-        raise RuntimeError("Live odds smoke payload must be mapping-like")
+def _payload_odds(payload: Mapping[str, Any], key: str) -> float:
     value = payload.get(key)
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise RuntimeError(f"Live odds smoke payload is missing {key}")
