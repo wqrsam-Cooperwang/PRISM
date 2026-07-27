@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -20,6 +21,14 @@ def _result(decision: str) -> V22PromotionResult:
         full_stack_validation_passed=decision == "promote",
         reasons=() if decision == "promote" else (f"governed decision: {decision}",),
     )
+
+
+def _empty_fingerprint(root: Path) -> dict[str, object]:
+    return {
+        "root": str(root),
+        "file_count": 0,
+        "sha256": hashlib.sha256().hexdigest(),
+    }
 
 
 @pytest.mark.parametrize(
@@ -70,8 +79,8 @@ def test_run_gate_persists_decision_before_returning_governed_exit_code(
         "require_full_stack_validation": True,
     }
     assert payload["provenance"] == {
-        "prediction_root": str(prediction_root),
-        "outcome_root": str(outcome_root),
+        "prediction_ledger": _empty_fingerprint(prediction_root),
+        "outcome_ledger": _empty_fingerprint(outcome_root),
     }
     assert payload["release_gate"] == {
         "allowed": decision == "promote",
