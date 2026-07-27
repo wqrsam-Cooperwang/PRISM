@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from src.ledger import MatchOutcome, load_formal_forward_testing_cohort
 from src.regression.importer import regression_case_from_ledgers
@@ -61,7 +61,7 @@ def _text(value: Any, field: str, path: Path) -> str:
 def _goal(value: Any, field: str, path: Path) -> int:
     if isinstance(value, bool) or not isinstance(value, int) or value < 0:
         raise ValueError(f"outcome ledger {field} must be a non-negative integer: {path}")
-    return value
+    return cast(int, value)
 
 
 def _datetime(value: Any, field: str, path: Path) -> datetime:
