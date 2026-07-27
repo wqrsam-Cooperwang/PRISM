@@ -215,6 +215,8 @@ class TeamScoringRateExpectedGoalsModel:
             expected_away_goals=away_xg,
             diagnostics={
                 "method": "scoring_conceding_rate_mean_poisson",
+                "evidence_family": "team_strength",
+                "assumption_family": "team_scoring_rates",
                 "home_goals_for_per_game": home_for,
                 "home_goals_against_per_game": home_against,
                 "away_goals_for_per_game": away_for,
