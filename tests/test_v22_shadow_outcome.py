@@ -7,10 +7,10 @@ from src.regression import (
     FrozenShadowSummary,
     V22ScorelineABSummary,
     compare_frozen_shadow_outcome,
-    evaluate_v22_promotion_with_shadow,
     full_stack_shadow_validation_passed,
     summarize_frozen_shadow,
 )
+from src.regression.shadow_validation import evaluate_v22_promotion_with_shadow
 
 NOW = datetime(2026, 7, 27, tzinfo=timezone.utc)
 
