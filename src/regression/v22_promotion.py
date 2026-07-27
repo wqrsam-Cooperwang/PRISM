@@ -60,7 +60,10 @@ def evaluate_v22_promotion(
         regression_reasons.append("primary exact-score hits regressed")
     if summary.v22_dual_hits < summary.v21_dual_hits:
         regression_reasons.append("dual exact-score hits regressed")
-    if summary.v22_mean_minimum_distance > summary.v21_mean_minimum_distance + 1e-12:
+    if (
+        summary.v22_mean_minimum_distance
+        > summary.v21_mean_minimum_distance + 1e-12
+    ):
         regression_reasons.append("mean minimum score distance regressed")
     if summary.v22_shared_story_pairs > summary.v21_shared_story_pairs:
         regression_reasons.append("shared-story pair count regressed")
@@ -78,11 +81,13 @@ def evaluate_v22_promotion(
     material_improvement = (
         summary.v22_primary_hits > summary.v21_primary_hits
         or summary.v22_dual_hits > summary.v21_dual_hits
-        or summary.v22_mean_minimum_distance < summary.v21_mean_minimum_distance - 1e-12
+        or summary.v22_mean_minimum_distance
+        < summary.v21_mean_minimum_distance - 1e-12
         or summary.v22_shared_story_pairs < summary.v21_shared_story_pairs
     )
     scoreline_layer_passed = (
-        summary.case_count >= effective_policy.minimum_scoreline_case_count and material_improvement
+        summary.case_count >= effective_policy.minimum_scoreline_case_count
+        and material_improvement
     )
 
     hold_reasons: list[str] = []
