@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Mapping, cast
+from typing import Any, Mapping
 
 from src.ledger import load_formal_forward_testing_cohort
 from src.regression.governed_dataset import load_governed_ledger_regression_dataset
@@ -89,4 +89,4 @@ def _scorelines(value: Any, label: str) -> tuple[str, str]:
     first, second = raw
     if not isinstance(first, str) or not isinstance(second, str):
         raise ValueError(f"{label} scorelines must be strings")
-    return cast(str, first), cast(str, second)
+    return first, second
