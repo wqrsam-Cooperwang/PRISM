@@ -61,9 +61,7 @@ def _validate_unique_stable_ids(snapshots: list[PredictionLedgerSnapshot]) -> No
     match_ids: set[str] = set()
     for snapshot in snapshots:
         if snapshot.prediction_id in prediction_ids:
-            raise ValueError(
-                f"duplicate formal ledger prediction_id: {snapshot.prediction_id}"
-            )
+            raise ValueError(f"duplicate formal ledger prediction_id: {snapshot.prediction_id}")
         if snapshot.match_id in match_ids:
             raise ValueError(f"duplicate formal ledger match_id: {snapshot.match_id}")
         prediction_ids.add(snapshot.prediction_id)
