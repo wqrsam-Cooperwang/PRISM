@@ -165,9 +165,7 @@ def _metrics(
 ) -> ScorelineEngineMetrics:
     actual = (actual_home, actual_away)
     scores = tuple((item.home_goals, item.away_goals) for item in pair)
-    distances = tuple(
-        abs(home - actual_home) + abs(away - actual_away) for home, away in scores
-    )
+    distances = tuple(abs(home - actual_home) + abs(away - actual_away) for home, away in scores)
     return ScorelineEngineMetrics(
         recommendations=pair,
         primary_exact_hit=scores[0] == actual,
@@ -190,10 +188,7 @@ def compare_v21_v22_scoreline_case(
     home_xg, away_xg = _aggregate_xg(case.models)
     direction = _xg_direction(home_xg, away_xg)
     v22_output = V22CandidateScorelineEngine().run_with_direction(context, direction)
-    if (
-        len(v21_output.recommended_scorelines) != 2
-        or len(v22_output.recommended_scorelines) != 2
-    ):
+    if len(v21_output.recommended_scorelines) != 2 or len(v22_output.recommended_scorelines) != 2:
         raise ValueError("V2.1/V2.2 A/B requires dual scoreline recommendations")
     return V22ScorelineABComparison(
         case_id=case.case_id,
@@ -224,12 +219,8 @@ def summarize_v21_v22_scoreline_ab(
         v22_primary_hits=sum(item.v22.primary_exact_hit for item in comparisons),
         v21_dual_hits=sum(item.v21.dual_exact_hit for item in comparisons),
         v22_dual_hits=sum(item.v22.dual_exact_hit for item in comparisons),
-        v21_mean_minimum_distance=mean(
-            item.v21.minimum_manhattan_distance for item in comparisons
-        ),
-        v22_mean_minimum_distance=mean(
-            item.v22.minimum_manhattan_distance for item in comparisons
-        ),
+        v21_mean_minimum_distance=mean(item.v21.minimum_manhattan_distance for item in comparisons),
+        v22_mean_minimum_distance=mean(item.v22.minimum_manhattan_distance for item in comparisons),
         v21_shared_story_pairs=sum(item.v21.shared_story_pair for item in comparisons),
         v22_shared_story_pairs=sum(item.v22.shared_story_pair for item in comparisons),
         v22_distance_improved_cases=sum(change < 0 for change in changes),
