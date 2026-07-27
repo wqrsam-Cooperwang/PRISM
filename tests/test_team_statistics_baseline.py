@@ -5,7 +5,7 @@ import pytest
 from src.collection import SourceEnvelope, TeamStatisticsAdapter
 from src.features import FeatureVector
 from src.intelligence import MatchTarget, ReadinessLevel, SourceRef, SourceType
-from src.prediction import TeamStatisticsProbabilityModel
+from src.prediction import TeamScoringRateExpectedGoalsModel, TeamStatisticsProbabilityModel
 
 NOW = datetime(2026, 7, 26, 12, 0, tzinfo=timezone.utc)
 
@@ -62,6 +62,8 @@ def test_team_statistics_adapter_derives_transparent_strength_observations() -> 
 
     assert by_key["points_per_game"] == pytest.approx(27.0 / 14.0)
     assert by_key["goal_difference_per_game"] == pytest.approx(9.0 / 14.0)
+    assert by_key["goals_for_per_game"] == pytest.approx(26.0 / 14.0)
+    assert by_key["goals_against_per_game"] == pytest.approx(17.0 / 14.0)
     assert by_key["points_last_5"] == 10
     assert all(item.subject == "home" for item in observations)
 
@@ -104,3 +106,26 @@ def test_team_statistics_probability_model_is_normalized_and_directional() -> No
     assert output.home_probability > output.away_probability
     assert probability_total == pytest.approx(1.0)
     assert output.diagnostics["method"] == "provisional_team_statistics_davidson"
+
+
+def test_scoring_rate_xg_model_produces_auditable_expected_goals() -> None:
+    features = FeatureVector(
+        values={
+            "home_goals_for_per_game": 1.40,
+            "home_goals_against_per_game": 1.20,
+            "away_goals_for_per_game": 1.60,
+            "away_goals_against_per_game": 1.00,
+        },
+        missing_features=(),
+        intelligence_fingerprint="intel-scoring-rates",
+        readiness=ReadinessLevel.STANDARD,
+        fingerprint="features-scoring-rates",
+    )
+
+    output = TeamScoringRateExpectedGoalsModel().predict(features)
+    probability_total = output.home_probability + output.draw_probability + output.away_probability
+
+    assert output.expected_home_goals == pytest.approx(1.20)
+    assert output.expected_away_goals == pytest.approx(1.40)
+    assert probability_total == pytest.approx(1.0)
+    assert output.diagnostics["method"] == "scoring_conceding_rate_mean_poisson"
