@@ -6,6 +6,8 @@ import json
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+import pytest
+
 from src.regression.governed_manifest import build_governed_cohort_manifest
 
 
@@ -180,3 +182,50 @@ def test_unsettled_prediction_is_not_admitted_to_manifest(tmp_path: Path) -> Non
     assert manifest.case_count == 1
     assert manifest.prediction_ids == ("prediction-match-a",)
     assert manifest.match_ids == ("match-a",)
+
+
+def test_manifest_rejects_duplicate_prediction_ids(tmp_path: Path) -> None:
+    predictions = tmp_path / "predictions"
+    outcomes = tmp_path / "outcomes"
+    _write_settled_case(
+        predictions,
+        outcomes,
+        "match-a",
+        prediction_id="prediction-duplicate",
+        prediction_filename="a.json",
+    )
+    _write_settled_case(
+        predictions,
+        outcomes,
+        "match-b",
+        prediction_id="prediction-duplicate",
+        prediction_filename="b.json",
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="governed promotion cohort contains duplicate prediction_id: prediction-duplicate",
+    ):
+        build_governed_cohort_manifest(predictions, outcomes)
+
+
+def test_manifest_rejects_duplicate_match_ids(tmp_path: Path) -> None:
+    predictions = tmp_path / "predictions"
+    outcomes = tmp_path / "outcomes"
+    _write(outcomes, "match-a.json", _outcome("match-a"))
+    _write(
+        predictions,
+        "first.json",
+        _prediction_record("match-a", "prediction-first"),
+    )
+    _write(
+        predictions,
+        "second.json",
+        _prediction_record("match-a", "prediction-second"),
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="governed promotion cohort contains duplicate match_id: match-a",
+    ):
+        build_governed_cohort_manifest(predictions, outcomes)
