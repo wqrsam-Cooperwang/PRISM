@@ -1,5 +1,6 @@
 """Post-match evaluation of governed PRISM predictions."""
 
+from src.evaluation.closed_loop import PostMatchClosedLoopResult, process_verified_match_outcome
 from src.evaluation.comparison import (
     BenchmarkComparison,
     MetricComparison,
@@ -21,6 +22,7 @@ from src.evaluation.dataset import (
     export_evaluation_jsonl,
     records_from_summary,
 )
+from src.evaluation.governed import GovernedEvaluationResult, evaluate_governed_settled_cohort
 from src.evaluation.harness import RealMatchEvaluationHarness
 from src.evaluation.importer import (
     BenchmarkSummary,
@@ -34,6 +36,10 @@ from src.evaluation.promotion import (
     PromotionPolicy,
     PromotionResult,
     evaluate_promotion,
+)
+from src.evaluation.promotion_evidence import (
+    PromotionEvidenceDecision,
+    assess_promotion_evidence,
 )
 from src.evaluation.promotion_report import (
     PROMOTION_REPORT_VERSION,
@@ -57,18 +63,24 @@ __all__ = [
     "EvaluationRecord",
     "EvaluationResult",
     "EvaluationSummary",
+    "GovernedEvaluationResult",
     "MetricComparison",
+    "PostMatchClosedLoopResult",
+    "PromotionEvidenceDecision",
     "PromotionPolicy",
     "PromotionResult",
     "RealMatchEvaluationHarness",
+    "assess_promotion_evidence",
     "compare_benchmarks",
     "comparison_report_payload",
+    "evaluate_governed_settled_cohort",
     "evaluate_promotion",
     "export_evaluation_csv",
     "export_evaluation_jsonl",
     "import_evaluation_csv",
     "import_evaluation_jsonl",
     "load_benchmark",
+    "process_verified_match_outcome",
     "promotion_report_payload",
     "records_from_summary",
     "release_gate_exit_code",
