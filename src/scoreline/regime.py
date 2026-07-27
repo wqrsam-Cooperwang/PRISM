@@ -55,7 +55,9 @@ class ScorelineRegimeClassifier:
         is_open = total_xg >= self.open_total_threshold
 
         if is_balanced:
-            regime = ScorelineRegime.BALANCED_OPEN if is_open else ScorelineRegime.BALANCED_LOW
+            regime = (
+                ScorelineRegime.BALANCED_OPEN if is_open else ScorelineRegime.BALANCED_LOW
+            )
         elif (
             direction.home_probability >= self.directional_probability_threshold
             and direction.home_probability > direction.away_probability
@@ -67,7 +69,9 @@ class ScorelineRegimeClassifier:
         ):
             regime = ScorelineRegime.AWAY_OPEN if is_open else ScorelineRegime.AWAY_CONTROL
         else:
-            regime = ScorelineRegime.BALANCED_OPEN if is_open else ScorelineRegime.BALANCED_LOW
+            regime = (
+                ScorelineRegime.BALANCED_OPEN if is_open else ScorelineRegime.BALANCED_LOW
+            )
 
         return RegimeClassification(
             regime=regime,
