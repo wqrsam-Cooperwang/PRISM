@@ -129,3 +129,5 @@ def test_scoring_rate_xg_model_produces_auditable_expected_goals() -> None:
     assert output.expected_away_goals == pytest.approx(1.40)
     assert probability_total == pytest.approx(1.0)
     assert output.diagnostics["method"] == "scoring_conceding_rate_mean_poisson"
+    assert output.diagnostics["evidence_family"] == "team_strength"
+    assert output.diagnostics["assumption_family"] == "team_scoring_rates"
