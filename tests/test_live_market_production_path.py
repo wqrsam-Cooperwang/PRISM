@@ -130,8 +130,8 @@ def _supplemental_clients() -> tuple[FixtureProviderClient, ...]:
             "observed_at": "2026-07-26T11:00:00+00:00",
             "home_team_id": "anyang",
             "away_team_id": "gangwon",
-            "home": {"elo_rating": 1540, "points_last_5": 7},
-            "away": {"elo_rating": 1620, "points_last_5": 11},
+            "home": {"elo_rating": 1540, "points_last_5": 10},
+            "away": {"elo_rating": 1620, "points_last_5": 10},
         },
     )
     availability = _envelope(
