@@ -7,33 +7,49 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, cast
 
-from src.ledger import MatchOutcome, load_formal_forward_testing_cohort
+from src.ledger import MatchOutcome, PredictionLedgerSnapshot, load_formal_forward_testing_cohort
 from src.regression.importer import regression_case_from_ledgers
 from src.regression.scoreline import ScorelineRegressionCase
+
+
+def load_governed_settled_ledger_pairs(
+    prediction_root: Path | str = "data/performance-ledger",
+    outcome_root: Path | str = "data/outcome-ledger",
+) -> tuple[tuple[PredictionLedgerSnapshot, MatchOutcome], ...]:
+    """Return contract-valid formal predictions paired with verified outcomes.
+
+    Missing outcomes are treated as unsettled forward-test cases and skipped.
+    Existing malformed outcomes fail closed. This is the canonical bridge for
+    evaluation layers that need both the frozen snapshot and the verified result.
+    """
+
+    snapshots = load_formal_forward_testing_cohort(prediction_root)
+    outcomes = Path(outcome_root)
+    pairs: list[tuple[PredictionLedgerSnapshot, MatchOutcome]] = []
+    for snapshot in snapshots:
+        outcome_path = outcomes / f"{snapshot.match_id}.json"
+        if not outcome_path.exists():
+            continue
+        outcome = _load_outcome(outcome_path)
+        if outcome.match_id != snapshot.match_id:
+            raise ValueError("prediction snapshot and outcome match_id must agree")
+        pairs.append((snapshot, outcome))
+    return tuple(pairs)
 
 
 def load_governed_ledger_regression_dataset(
     prediction_root: Path | str = "data/performance-ledger",
     outcome_root: Path | str = "data/outcome-ledger",
 ) -> tuple[ScorelineRegressionCase, ...]:
-    """Build replay cases only from contract-valid formal predictions with outcomes.
+    """Build replay cases only from contract-valid formal predictions with outcomes."""
 
-    Predictions enter through the formal forward-testing cohort loader, so malformed
-    or non-formal snapshots cannot bypass the admission contract. Missing outcomes
-    are treated as unsettled forward-test cases and are skipped; an existing but
-    malformed outcome record fails closed.
-    """
-
-    snapshots = load_formal_forward_testing_cohort(prediction_root)
-    outcomes = Path(outcome_root)
-    cases: list[ScorelineRegressionCase] = []
-    for snapshot in snapshots:
-        outcome_path = outcomes / f"{snapshot.match_id}.json"
-        if not outcome_path.exists():
-            continue
-        outcome = _load_outcome(outcome_path)
-        cases.append(regression_case_from_ledgers(snapshot, outcome))
-    return tuple(cases)
+    return tuple(
+        regression_case_from_ledgers(snapshot, outcome)
+        for snapshot, outcome in load_governed_settled_ledger_pairs(
+            prediction_root,
+            outcome_root,
+        )
+    )
 
 
 def _load_outcome(path: Path) -> MatchOutcome:
