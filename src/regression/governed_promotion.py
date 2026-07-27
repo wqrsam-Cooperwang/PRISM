@@ -45,7 +45,9 @@ def evaluate_governed_v22_promotion(
 
     cases = load_governed_ledger_regression_dataset(prediction_root, outcome_root)
     if len(cases) != len(pairs):
-        raise ValueError("governed scoreline and full-stack cohorts must have identical case counts")
+        raise ValueError(
+            "governed scoreline and full-stack cohorts must have identical case counts"
+        )
 
     scoreline_summary = summarize_v21_v22_scoreline_ab(
         tuple(compare_v21_v22_scoreline_case(case) for case in cases)
@@ -54,7 +56,9 @@ def evaluate_governed_v22_promotion(
         tuple(compare_frozen_shadow_outcome(snapshot, outcome) for snapshot, outcome in pairs)
     )
     if scoreline_summary.case_count != shadow_summary.case_count:
-        raise ValueError("governed scoreline and full-stack summaries must cover the same cohort")
+        raise ValueError(
+            "governed scoreline and full-stack summaries must cover the same cohort"
+        )
 
     return evaluate_v22_promotion_with_shadow(
         scoreline_summary,
