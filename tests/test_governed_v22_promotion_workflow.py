@@ -21,7 +21,7 @@ def test_governed_v22_workflow_preserves_enforcement_contract() -> None:
         "uses: actions/upload-artifact@v4",
         "name: governed-v22-promotion-decision",
         "if: always()",
-        'GATE_EXIT_CODE: ${{ steps.gate.outputs.exit_code }}',
+        "GATE_EXIT_CODE: ${{ steps.gate.outputs.exit_code }}",
         'exit "$GATE_EXIT_CODE"',
     )
     for fragment in required_fragments:
