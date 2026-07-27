@@ -14,23 +14,25 @@ from src.regression import (
 DATASET = Path("data/regression/legacy-airtable-2026-07.json")
 
 
-def _summary(**overrides: int | float) -> V22ScorelineABSummary:
-    values: dict[str, int | float] = {
-        "case_count": 30,
-        "v21_primary_hits": 4,
-        "v22_primary_hits": 4,
-        "v21_dual_hits": 7,
-        "v22_dual_hits": 8,
-        "v21_mean_minimum_distance": 1.1,
-        "v22_mean_minimum_distance": 1.0,
-        "v21_shared_story_pairs": 8,
-        "v22_shared_story_pairs": 7,
-        "v22_distance_improved_cases": 8,
-        "v22_distance_worsened_cases": 4,
-        "distance_tied_cases": 18,
-    }
-    values.update(overrides)
-    return V22ScorelineABSummary(**values)  # type: ignore[arg-type]
+def _summary(
+    *,
+    case_count: int = 30,
+    v22_dual_hits: int = 8,
+) -> V22ScorelineABSummary:
+    return V22ScorelineABSummary(
+        case_count=case_count,
+        v21_primary_hits=4,
+        v22_primary_hits=4,
+        v21_dual_hits=7,
+        v22_dual_hits=v22_dual_hits,
+        v21_mean_minimum_distance=1.1,
+        v22_mean_minimum_distance=1.0,
+        v21_shared_story_pairs=8,
+        v22_shared_story_pairs=7,
+        v22_distance_improved_cases=8,
+        v22_distance_worsened_cases=4,
+        distance_tied_cases=18,
+    )
 
 
 def test_current_legacy_cohort_is_governed_hold_not_promotion() -> None:
