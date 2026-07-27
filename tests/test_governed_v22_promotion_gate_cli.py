@@ -60,7 +60,20 @@ def test_run_gate_persists_decision_before_returning_governed_exit_code(
     assert captured["policy"].minimum_full_stack_case_count == 32
 
     payload = json.loads(output_path.read_text(encoding="utf-8"))
+    assert payload["artifact_version"] == "1.0.0"
     assert payload["decision"] == decision
     assert payload["gate"] == "governed_v22_promotion"
-    assert payload["prediction_root"] == str(prediction_root)
-    assert payload["outcome_root"] == str(outcome_root)
+    assert payload["policy"] == {
+        "version": "1.0.0",
+        "minimum_scoreline_case_count": 31,
+        "minimum_full_stack_case_count": 32,
+        "require_full_stack_validation": True,
+    }
+    assert payload["provenance"] == {
+        "prediction_root": str(prediction_root),
+        "outcome_root": str(outcome_root),
+    }
+    assert payload["release_gate"] == {
+        "allowed": decision == "promote",
+        "exit_code": expected_exit_code,
+    }
