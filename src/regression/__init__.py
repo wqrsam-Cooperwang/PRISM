@@ -26,6 +26,18 @@ from src.regression.v22_ab import (
     compare_v21_v22_scoreline_case,
     summarize_v21_v22_scoreline_ab,
 )
+from src.regression.v22_promotion import (
+    V22_PROMOTION_POLICY_VERSION,
+    V22PromotionPolicy,
+    V22PromotionResult,
+    evaluate_v22_promotion,
+)
+from src.regression.v22_report import (
+    V22_AB_REPORT_VERSION,
+    render_v22_ab_json,
+    render_v22_ab_markdown,
+    v22_ab_report_payload,
+)
 
 __all__ = [
     "BatchScorelineRegressionResult",
@@ -37,17 +49,25 @@ __all__ = [
     "ScorelineRegressionCase",
     "ScorelineRegressionComparison",
     "ScorelineRegressionSummary",
+    "V22_AB_REPORT_VERSION",
+    "V22_PROMOTION_POLICY_VERSION",
+    "V22PromotionPolicy",
+    "V22PromotionResult",
     "V22ScorelineABComparison",
     "V22ScorelineABSummary",
     "build_historical_error_taxonomy",
     "compare_scoreline_case",
     "compare_v21_v22_scoreline_case",
     "evaluate_legacy_outcome_case",
+    "evaluate_v22_promotion",
     "load_legacy_outcome_cases",
     "load_scoreline_regression_dataset",
     "regression_case_from_ledgers",
+    "render_v22_ab_json",
+    "render_v22_ab_markdown",
     "run_batch_scoreline_regression",
     "summarize_legacy_outcomes",
     "summarize_scoreline_regression",
     "summarize_v21_v22_scoreline_ab",
+    "v22_ab_report_payload",
 ]
