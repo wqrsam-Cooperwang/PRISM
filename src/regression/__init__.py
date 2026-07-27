@@ -20,6 +20,12 @@ from src.regression.scoreline import (
     compare_scoreline_case,
     summarize_scoreline_regression,
 )
+from src.regression.v22_ab import (
+    V22ScorelineABComparison,
+    V22ScorelineABSummary,
+    compare_v21_v22_scoreline_case,
+    summarize_v21_v22_scoreline_ab,
+)
 
 __all__ = [
     "BatchScorelineRegressionResult",
@@ -31,8 +37,11 @@ __all__ = [
     "ScorelineRegressionCase",
     "ScorelineRegressionComparison",
     "ScorelineRegressionSummary",
+    "V22ScorelineABComparison",
+    "V22ScorelineABSummary",
     "build_historical_error_taxonomy",
     "compare_scoreline_case",
+    "compare_v21_v22_scoreline_case",
     "evaluate_legacy_outcome_case",
     "load_legacy_outcome_cases",
     "load_scoreline_regression_dataset",
@@ -40,4 +49,5 @@ __all__ = [
     "run_batch_scoreline_regression",
     "summarize_legacy_outcomes",
     "summarize_scoreline_regression",
+    "summarize_v21_v22_scoreline_ab",
 ]
