@@ -5,9 +5,9 @@ from __future__ import annotations
 from src.consensus import DirectionCalibrationOutput
 from src.consensus.correlation import assumption_family, family_capped_weights
 from src.domain.models import MatchContext
-from src.scoreline.diversity import select_diversified_pair
 from src.scoreline.engine import ScorelineEngine
 from src.scoreline.models import ScorelineCandidate, ScorelineOutput
+from src.scoreline.portfolio import select_portfolio_pair
 from src.scoreline.regime import ScorelineRegimeClassifier
 from src.scoreline.regime_policy import scenario_weights_for_regime
 
@@ -93,7 +93,7 @@ class V22CandidateScorelineEngine(ScorelineEngine):
                 ),
             )
         )
-        recommended = select_diversified_pair(ranked)
+        recommended = select_portfolio_pair(ranked)
         grid_mass = sum(item.probability for item in candidates)
         assumption_summary = ",".join(
             f"{model.model_id}:{assumption_family(model)}:{weight:.6f}"
@@ -115,6 +115,7 @@ class V22CandidateScorelineEngine(ScorelineEngine):
                 f"regime={classification.regime.value}",
                 f"scenario_weights={scenario_summary}",
                 f"effective_xg_weights={assumption_summary}",
+                "Dual recommendations use candidate portfolio optimization across result, total-goals, and clean-sheet stories.",
                 "Candidate only: production V2.1 remains unchanged pending A/B evidence.",
             ),
         )
