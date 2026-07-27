@@ -54,8 +54,7 @@ class DirectionCalibrator:
             consensus.away_probability,
         )
         calibrated = tuple(
-            reliability * probability + (1.0 - reliability) * uniform
-            for probability in raw
+            reliability * probability + (1.0 - reliability) * uniform for probability in raw
         )
         raw_leading = max(raw)
         calibrated_leading = max(calibrated)
