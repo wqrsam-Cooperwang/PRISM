@@ -1,0 +1,52 @@
+{
+  "dataset_id": "legacy-chat-recovery-2026-06-27_2026-07-26-v1",
+  "scope": "historical_prediction_inventory",
+  "sources": ["PRISM project conversation recovery", "Airtable cross-check", "File Library match artifacts"],
+  "rules": [
+    "Never infer missing pre-match xG from final score or post-match data.",
+    "Screenshot betting selections are recovery indexes unless independently matched to a PRISM frozen prediction.",
+    "Prediction-only records remain useful historical inventory but do not enter xG replay without frozen xG.",
+    "Conflicting prediction versions are preserved rather than silently overwritten."
+  ],
+  "records": [
+    {"id":"LEG-20260627-CPV-KSA","home":"Cape Verde","away":"Saudi Arabia","predicted_scores":["1-0","2-1","1-1"],"actual_score":"0-0","status":"outcome_only","review":"High motivation did not convert into goals; finishing/conversion failure."},
+    {"id":"LEG-20260629-RSA-CAN","home":"South Africa","away":"Canada","predicted_scores":["1-2","0-1","1-1"],"actual_score":"0-1","status":"outcome_only","review":"Second candidate hit; review introduced low-block breaking ability/LBI."},
+
+    {"id":"PES-000001-A","home":"Brazil","away":"Japan","predicted_scores":["2-0","1-0","2-1"],"status":"prediction_only"},
+    {"id":"PES-000001-B","home":"Germany","away":"Paraguay","predicted_scores":["2-0","3-0","2-1"],"status":"prediction_only"},
+    {"id":"PES-000001-C","home":"Netherlands","away":"Morocco","predicted_scores":["1-1","1-0","2-1"],"status":"prediction_only"},
+    {"id":"PES-000002-A","home":"Cote d'Ivoire","away":"Norway","predicted_scores":["1-2"],"status":"prediction_only","frozen":true},
+    {"id":"PES-000002-B","home":"France","away":"Sweden","predicted_scores":["2-0"],"status":"prediction_only","frozen":true},
+    {"id":"PES-000002-C","home":"Mexico","away":"Ecuador","predicted_scores":["1-1"],"status":"prediction_only","frozen":true},
+    {"id":"PES-000003-A","home":"England","away":"DR Congo","predicted_scores":["2-0"],"status":"prediction_only","frozen":true},
+    {"id":"PES-000003-B","home":"Belgium","away":"Senegal","predicted_scores":["2-1"],"status":"prediction_only","frozen":true},
+    {"id":"PES-000003-C","home":"USA","away":"Bosnia","predicted_scores":["2-0"],"status":"prediction_only","frozen":true},
+    {"id":"PES-000004-A","home":"Spain","away":"Austria","predicted_scores":["2-0"],"status":"prediction_only"},
+    {"id":"PES-000004-B","home":"Portugal","away":"Croatia","predicted_scores":["2-1"],"status":"prediction_only"},
+    {"id":"PES-000004-C","home":"Switzerland","away":"Algeria","predicted_scores":["2-1"],"status":"prediction_only"},
+    {"id":"PES-000005-A","home":"Australia","away":"Egypt","predicted_scores":["1-1","1-2","1-0"],"status":"prediction_only"},
+    {"id":"PES-000005-B","home":"Argentina","away":"Cape Verde","predicted_scores":["2-0","3-0","2-1"],"status":"prediction_only"},
+    {"id":"PES-000005-C","home":"Colombia","away":"Ghana","predicted_scores":["2-1","1-0","1-1"],"status":"prediction_only"},
+
+    {"id":"LEG-20260708-ARG-EGY","home":"Argentina","away":"Egypt","predicted_scores":["2-0","3-0","2-1"],"actual_score":"3-2","status":"outcome_only"},
+    {"id":"LEG-20260708-SUI-COL","home":"Switzerland","away":"Colombia","predicted_scores":["1-1","1-0","2-0"],"actual_score":"0-0","status":"outcome_only","notes":"Switzerland advanced 4-3 on penalties; regulation score stored."},
+    {"id":"LEG-20260715-ENG-ARG","home":"England","away":"Argentina","predicted_scores":["1-1","1-0","2-1"],"actual_score":"1-2","status":"outcome_only","notes":"Historical final recommendation centered on 1-1 with England-side alternatives; later match result recovered."},
+
+    {"id":"LEG-20260719-JAR-INT","home":"Jaro","away":"Inter Turku","predicted_scores":["0-2","0-1","1-2"],"status":"prediction_only","notes":"Final PRISM call: away win, HT 0-1."},
+    {"id":"LEG-20260719-SIR-ELF","home":"Sirius","away":"Elfsborg","predicted_scores":["1-2","1-1","0-1"],"status":"prediction_only","notes":"Final direction away win."},
+    {"id":"LEG-20260719-HAM-DEG","home":"Hammarby","away":"Degerfors","predicted_scores":["3-0","2-0","3-1"],"actual_score":"4-0","status":"outcome_only","notes":"Airtable supplies frozen xG separately in scoreline replay cohort."},
+
+    {"id":"LEG-20260723-HAM-AND","home":"Hammarby IF","away":"RSC Anderlecht","predicted_scores":["2-1","1-1","1-2"],"actual_score":"1-1","status":"outcome_only"},
+    {"id":"LEG-20260723-STG-BEN","home":"FC St. Gallen","away":"Benfica","predicted_scores":["0-2","1-2","0-3"],"actual_score":"2-1","status":"outcome_only"},
+    {"id":"LEG-20260723-BES-MID","home":"Besiktas","away":"FC Midtjylland","predicted_scores":["1-1","1-0","2-1"],"actual_score":"1-0","status":"outcome_only","notes":"Exact candidate hit."},
+    {"id":"LEG-20260723-TWE-FER","home":"FC Twente","away":"Ferencvaros","predicted_scores":["2-1","1-0","2-0"],"actual_score":"1-2","status":"outcome_only"},
+
+    {"id":"LEG-20260724-JAR-SJK","home":"Jaro","away":"SJK","predicted_scores":["1-1","1-2","2-1"],"home_xg":1.28,"away_xg":1.39,"status":"scoreline_only","notes":"A separate historical display also listed 2-0/1-1/1-2; preserve version conflict."},
+    {"id":"LEG-20260724-VSK-OIS","home":"Vasteras SK","away":"Orgryte IS","predicted_scores":["2-0","3-0","2-1"],"home_xg":2.22,"away_xg":0.72,"actual_score":"2-0","status":"scoreline_only","notes":"Primary exact-score hit."},
+
+    {"id":"LEG-20260726-SEO-ULS","home":"FC Seoul","away":"Ulsan HD","predicted_scores":["2-1","2-0"],"actual_score":"1-3","status":"outcome_only"},
+    {"id":"LEG-20260726-INC-BUC","home":"Incheon United","away":"Bucheon FC 1995","predicted_scores":["1-0","1-1"],"actual_score":"1-1","status":"outcome_only","notes":"Second exact score hit."},
+    {"id":"LEG-20260726-GWA-JEJ","home":"Gwangju FC","away":"Jeju SK","predicted_scores":["0-1","1-1"],"actual_score":"1-2","status":"outcome_only"},
+    {"id":"LEG-20260726-ANY-GAN","home":"FC Anyang","away":"Gangwon FC","predicted_scores":["1-1","0-1"],"actual_score":"2-1","status":"outcome_only"}
+  ]
+}
