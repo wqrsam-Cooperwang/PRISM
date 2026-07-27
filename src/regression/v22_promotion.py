@@ -1,4 +1,11 @@
-"""Governed promotion policy for PRISM Exact Score V2.2 candidate."""
+"""Governed promotion policy for PRISM Exact Score V2.2 candidate.
+
+Production callers must use ``evaluate_governed_v22_promotion`` from
+``src.regression`` so promotion evidence is admitted through the formal cohort
+and verified outcome gates. The evaluators in this module are intentionally
+low-level/offline policy primitives for tests, replay analysis, and the governed
+orchestrator.
+"""
 
 from __future__ import annotations
 
@@ -49,7 +56,12 @@ def evaluate_v22_promotion(
     full_stack_validation_passed: bool = False,
     policy: V22PromotionPolicy | None = None,
 ) -> V22PromotionResult:
-    """Evaluate V2.2 without allowing small-sample or partial-stack promotion."""
+    """Evaluate already-admitted evidence; offline/internal primitive only.
+
+    This function does not verify ledger provenance, formal pre-match freezing,
+    outcome integrity, or cohort identity. Production promotion decisions must
+    enter through ``evaluate_governed_v22_promotion``.
+    """
 
     effective_policy = policy or V22PromotionPolicy()
     if full_stack_case_count < 0:
