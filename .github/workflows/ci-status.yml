@@ -1,0 +1,113 @@
+name: CI Status Snapshot
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  snapshot:
+    if: github.event.workflow_run.head_branch == 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Build ci_status.json
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          RUN_NUMBER: ${{ github.event.workflow_run.run_number }}
+          RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+          EVENT_NAME: ${{ github.event.workflow_run.event }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import subprocess
+          from datetime import datetime, timezone
+
+          repo = os.environ["REPO"]
+          run_id = os.environ["RUN_ID"]
+
+          jobs_raw = subprocess.check_output(
+              ["gh", "api", f"repos/{repo}/actions/runs/{run_id}/jobs?per_page=100"],
+              text=True,
+          )
+          jobs_data = json.loads(jobs_raw)
+
+          jobs = []
+          error_excerpt = ""
+          for job in jobs_data.get("jobs", []):
+              failed_steps = [
+                  {
+                      "name": step.get("name"),
+                      "conclusion": step.get("conclusion"),
+                      "number": step.get("number"),
+                  }
+                  for step in job.get("steps", [])
+                  if step.get("conclusion") == "failure"
+              ]
+              jobs.append(
+                  {
+                      "id": job.get("id"),
+                      "name": job.get("name"),
+                      "conclusion": job.get("conclusion"),
+                      "html_url": job.get("html_url"),
+                      "failed_steps": failed_steps,
+                  }
+              )
+
+              if failed_steps and not error_excerpt:
+                  job_id = str(job["id"])
+                  try:
+                      log = subprocess.check_output(
+                          ["gh", "api", f"repos/{repo}/actions/jobs/{job_id}/logs"],
+                          text=True,
+                          stderr=subprocess.STDOUT,
+                      )
+                  except subprocess.CalledProcessError as exc:
+                      log = exc.output or ""
+                  lines = [line for line in log.splitlines() if line.strip()]
+                  error_excerpt = "\n".join(lines[-120:])[-16000:]
+
+          payload = {
+              "schema_version": 1,
+              "updated_at": datetime.now(timezone.utc).isoformat(),
+              "workflow": "CI",
+              "run_id": int(run_id),
+              "run_number": int(os.environ["RUN_NUMBER"]),
+              "run_attempt": int(os.environ["RUN_ATTEMPT"]),
+              "event": os.environ["EVENT_NAME"],
+              "head_sha": os.environ["HEAD_SHA"],
+              "conclusion": os.environ["CONCLUSION"],
+              "run_url": os.environ["RUN_URL"],
+              "jobs": jobs,
+              "error_excerpt": error_excerpt,
+          }
+
+          with open("ci_status.json", "w", encoding="utf-8") as handle:
+              json.dump(payload, handle, ensure_ascii=False, indent=2)
+              handle.write("\n")
+          PY
+
+      - name: Commit status snapshot
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ci_status.json
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "ci(status): record run ${{ github.event.workflow_run.run_number }}"
+          git push origin HEAD:main
