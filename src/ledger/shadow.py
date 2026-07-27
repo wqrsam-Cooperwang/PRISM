@@ -28,9 +28,7 @@ def _scoreline_dict(output: ScorelineOutput) -> dict[str, Any]:
         "expected_home_goals": output.expected_home_goals,
         "expected_away_goals": output.expected_away_goals,
         "top_scorelines": [_candidate_dict(item) for item in output.top_scorelines],
-        "recommended_scorelines": [
-            _candidate_dict(item) for item in output.recommended_scorelines
-        ],
+        "recommended_scorelines": [_candidate_dict(item) for item in output.recommended_scorelines],
         "grid_probability_mass": output.grid_probability_mass,
         "tail_mass": output.tail_mass,
         "rationale": list(output.rationale),
