@@ -14,7 +14,11 @@ from src.ledger.store import FileSystemPredictionLedgerStore
 
 def _valid_snapshot(*, frozen_after_kickoff: bool = False) -> PredictionLedgerSnapshot:
     kickoff = datetime(2026, 7, 28, 12, 0, tzinfo=timezone.utc)
-    frozen_at = kickoff + timedelta(minutes=1) if frozen_after_kickoff else kickoff - timedelta(hours=1)
+    frozen_at = (
+        kickoff + timedelta(minutes=1)
+        if frozen_after_kickoff
+        else kickoff - timedelta(hours=1)
+    )
     return PredictionLedgerSnapshot(
         prediction_id="prediction-match-a",
         match_id="match-a",
