@@ -52,7 +52,9 @@ def conditional_tail_width(signals: DispersionSignals) -> DispersionDecision:
     dominance = 0.45 * signals.dominance_risk
     low_event = 0.40 * signals.low_event_risk
 
-    home_width = _bounded(1.0 + uncertainty + regime + dominance - 0.15 * signals.low_event_risk)
+    home_width = _bounded(
+        1.0 + uncertainty + regime + dominance - 0.15 * signals.low_event_risk
+    )
     away_width = _bounded(
         1.0
         + uncertainty
