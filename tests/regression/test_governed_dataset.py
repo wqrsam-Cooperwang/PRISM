@@ -31,7 +31,18 @@ def _prediction_record(match_id: str = "match-1") -> dict[str, object]:
                     "recommended_scorelines": ["1-0", "1-1"],
                 },
             },
-            "model_outputs": [{"model_id": "prism", "model_version": "V2.1"}],
+            "model_outputs": [
+                {
+                    "model_id": "prism",
+                    "model_version": "V2.1",
+                    "home_probability": 0.40,
+                    "draw_probability": 0.30,
+                    "away_probability": 0.30,
+                    "expected_home_goals": 1.25,
+                    "expected_away_goals": 1.05,
+                    "diagnostics": {},
+                }
+            ],
             "shadow_predictions": {
                 "v2_2": {
                     "schema_version": "1",
@@ -79,8 +90,11 @@ def test_settled_formal_prediction_enters_dataset(tmp_path):
     cases = load_governed_ledger_regression_dataset(predictions, outcomes)
 
     assert len(cases) == 1
-    assert cases[0].match_id == "match-1"
-    assert cases[0].actual_scoreline == "1-1"
+    assert cases[0].case_id == "prediction-match-1"
+    assert cases[0].actual_home_goals == 1
+    assert cases[0].actual_away_goals == 1
+    assert cases[0].models[0].expected_home_goals == 1.25
+    assert cases[0].models[0].expected_away_goals == 1.05
 
 
 def test_invalid_formal_prediction_cannot_bypass_cohort_gate(tmp_path):
