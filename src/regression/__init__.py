@@ -20,6 +20,12 @@ from src.regression.scoreline import (
     compare_scoreline_case,
     summarize_scoreline_regression,
 )
+from src.regression.shadow_outcome import (
+    FrozenShadowComparison,
+    FrozenShadowSummary,
+    compare_frozen_shadow_outcome,
+    summarize_frozen_shadow,
+)
 from src.regression.v22_ab import (
     V22ScorelineABComparison,
     V22ScorelineABSummary,
@@ -41,6 +47,8 @@ from src.regression.v22_report import (
 
 __all__ = [
     "BatchScorelineRegressionResult",
+    "FrozenShadowComparison",
+    "FrozenShadowSummary",
     "HistoricalErrorTaxonomy",
     "LegacyOutcomeCase",
     "LegacyOutcomeMetrics",
@@ -56,6 +64,7 @@ __all__ = [
     "V22ScorelineABComparison",
     "V22ScorelineABSummary",
     "build_historical_error_taxonomy",
+    "compare_frozen_shadow_outcome",
     "compare_scoreline_case",
     "compare_v21_v22_scoreline_case",
     "evaluate_legacy_outcome_case",
@@ -66,6 +75,7 @@ __all__ = [
     "render_v22_ab_json",
     "render_v22_ab_markdown",
     "run_batch_scoreline_regression",
+    "summarize_frozen_shadow",
     "summarize_legacy_outcomes",
     "summarize_scoreline_regression",
     "summarize_v21_v22_scoreline_ab",
