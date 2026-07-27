@@ -61,7 +61,13 @@ def run_live_market_prediction_path(
     operator: str | None = None,
     ai_models: tuple[str, ...] = (),
 ) -> FullAutomatedPredictionResult:
-    """Run the real odds provider plus supplemental providers through production."""
+    """Run an exploratory live prediction without freezing a formal ledger record.
+
+    This entry point is intentionally non-formal. Any prediction intended for
+    publication, forward testing, regression evaluation, or later outcome review
+    must use :func:`run_live_market_formal_prediction_path` so the pre-match
+    snapshot is persisted before kickoff.
+    """
 
     clients, adapters = _live_clients_and_adapters(
         supplemental_clients,
@@ -112,7 +118,13 @@ def run_live_market_formal_prediction_path(
     operator: str | None = None,
     ai_models: tuple[str, ...] = (),
 ) -> FormalPredictionResult:
-    """Run a real-market prediction and fail closed unless its shadow snapshot persists."""
+    """Run a formal live prediction and fail closed unless its snapshot persists.
+
+    This is the canonical live entry point for predictions that count toward
+    forward testing or historical evaluation. It freezes the governed pre-match
+    prediction, including the configured shadow scoreline output, into the
+    prediction ledger before the result can be treated as formal.
+    """
 
     clients, adapters = _live_clients_and_adapters(
         supplemental_clients,
