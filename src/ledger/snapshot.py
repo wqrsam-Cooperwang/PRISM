@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from datetime import datetime
 from hashlib import sha256
 from typing import Any
@@ -92,6 +93,7 @@ def build_prediction_snapshot(
     *,
     frozen_at: datetime,
     model_outputs: tuple[ModelOutput, ...] = (),
+    shadow_predictions: Mapping[str, Any] | None = None,
 ) -> PredictionLedgerSnapshot:
     """Project one governed production result into a durable frozen snapshot."""
 
@@ -106,6 +108,7 @@ def build_prediction_snapshot(
         "collection_gate": _gate_dict(gate),
         "features": _feature_dict(features),
         "model_outputs": [_model_output_dict(item) for item in model_outputs],
+        "shadow_predictions": dict(shadow_predictions or {}),
     }
     return PredictionLedgerSnapshot(
         prediction_id=_prediction_id(report),
