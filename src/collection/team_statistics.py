@@ -41,7 +41,7 @@ def _recent_points(form: str) -> int:
     return sum(3 if result == "W" else 1 if result == "D" else 0 for result in last_five)
 
 
-def _team_metrics(statistics: Mapping[str, Any]) -> tuple[float, float, int]:
+def _team_metrics(statistics: Mapping[str, Any]) -> tuple[float, float, int, float, float]:
     fixtures = _mapping(statistics.get("fixtures"), "statistics.fixtures")
     played = _nested_total(fixtures, "played", "statistics.fixtures.played.total")
     wins = _nested_total(fixtures, "wins", "statistics.fixtures.wins.total")
@@ -65,9 +65,17 @@ def _team_metrics(statistics: Mapping[str, Any]) -> tuple[float, float, int]:
     )
 
     points_per_game = (3.0 * wins + draws) / played
-    goal_difference_per_game = (scored - conceded) / played
+    goals_for_per_game = scored / played
+    goals_against_per_game = conceded / played
+    goal_difference_per_game = goals_for_per_game - goals_against_per_game
     points_last_5 = _recent_points(_text(statistics.get("form"), "statistics.form"))
-    return points_per_game, goal_difference_per_game, points_last_5
+    return (
+        points_per_game,
+        goal_difference_per_game,
+        points_last_5,
+        goals_for_per_game,
+        goals_against_per_game,
+    )
 
 
 @dataclass(frozen=True)
@@ -89,7 +97,13 @@ class TeamStatisticsAdapter:
         if side not in {"home", "away"}:
             raise ValueError("side must be home or away")
         statistics = _mapping(payload.get("statistics"), "statistics")
-        points_per_game, goal_difference_per_game, points_last_5 = _team_metrics(statistics)
+        (
+            points_per_game,
+            goal_difference_per_game,
+            points_last_5,
+            goals_for_per_game,
+            goals_against_per_game,
+        ) = _team_metrics(statistics)
 
         rows = (
             ("ppg", IntelligenceCategory.TEAM_STRENGTH, "points_per_game", points_per_game),
@@ -98,6 +112,18 @@ class TeamStatisticsAdapter:
                 IntelligenceCategory.TEAM_STRENGTH,
                 "goal_difference_per_game",
                 goal_difference_per_game,
+            ),
+            (
+                "goals-for-pg",
+                IntelligenceCategory.TEAM_STRENGTH,
+                "goals_for_per_game",
+                goals_for_per_game,
+            ),
+            (
+                "goals-against-pg",
+                IntelligenceCategory.TEAM_STRENGTH,
+                "goals_against_per_game",
+                goals_against_per_game,
             ),
             ("recent-form", IntelligenceCategory.RECENT_FORM, "points_last_5", points_last_5),
         )
