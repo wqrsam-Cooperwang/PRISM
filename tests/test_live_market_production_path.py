@@ -1,11 +1,13 @@
 import json
 from datetime import datetime, timezone
+from pathlib import Path
 
 import pytest
 
 from src.acquisition import (
     FixtureProviderClient,
     ProviderFetchRequest,
+    run_live_market_formal_prediction_path,
     run_live_market_prediction_path,
 )
 from src.collection import (
@@ -16,6 +18,7 @@ from src.collection import (
 )
 from src.connectors import FixtureHttpTransport, HttpResponse
 from src.intelligence import MatchTarget, SourceRef, SourceType
+from src.ledger import FileSystemPredictionLedgerStore
 
 NOW = datetime(2026, 7, 26, 12, 0, tzinfo=timezone.utc)
 KICKOFF = datetime(2026, 7, 27, 10, 30, tzinfo=timezone.utc)
@@ -167,6 +170,28 @@ def test_live_market_data_runs_through_existing_full_production_path() -> None:
     assert result.features.values["elo_difference"] == pytest.approx(-80.0)
     assert result.report.scoreline is not None
     assert SECRET not in repr(result)
+
+
+def test_live_market_formal_path_persists_v22_shadow(tmp_path: Path) -> None:
+    result = run_live_market_formal_prediction_path(
+        _request(),
+        _supplemental_clients(),
+        _supplemental_adapters(),
+        FileSystemPredictionLedgerStore(tmp_path),
+        collected_at=NOW,
+        frozen_at=NOW,
+        prism_version="test",
+        environment={"THE_ODDS_API_KEY": SECRET},
+        transport=_market_transport(),
+        session_id="live-formal-shadow-test",
+        created_at=NOW,
+    )
+
+    saved = json.loads(result.ledger_path.read_text(encoding="utf-8"))
+    shadow = saved["payload"]["shadow_predictions"]["v2_2"]
+    assert shadow["status"] == "available"
+    assert len(shadow["scoreline"]["recommended_scorelines"]) == 2
+    assert SECRET not in result.ledger_path.read_text(encoding="utf-8")
 
 
 def test_market_only_live_run_is_rejected_by_existing_collection_gate() -> None:
