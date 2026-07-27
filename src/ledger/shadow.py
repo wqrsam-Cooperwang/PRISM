@@ -44,7 +44,9 @@ def build_v22_shadow_payload(context: MatchContext) -> dict[str, Any]:
     Consensus/Evidence is recorded as unavailable instead of breaking production.
     """
 
-    if context.consensus is None or context.evidence is None:
+    consensus = getattr(context, "consensus", None)
+    evidence = getattr(context, "evidence", None)
+    if consensus is None or evidence is None:
         return {
             "schema_version": V22_SHADOW_SCHEMA_VERSION,
             "candidate_version": V22CandidateScorelineEngine.version,
@@ -52,7 +54,7 @@ def build_v22_shadow_payload(context: MatchContext) -> dict[str, Any]:
             "reason": "consensus and evidence are required for full-stack V2.2 shadowing",
         }
 
-    direction = DirectionCalibrator().run(context.consensus, context.evidence)
+    direction = DirectionCalibrator().run(consensus, evidence)
     scoreline = V22CandidateScorelineEngine().run_with_direction(context, direction)
     return {
         "schema_version": V22_SHADOW_SCHEMA_VERSION,
