@@ -6,10 +6,8 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from src.acquisition.interface import ProviderClient
-from src.acquisition.models import ProviderFetchRequest
-from src.acquisition.production_path import run_acquired_prediction_path
 from src.collection.interface import ObservationAdapter
 from src.decision.engine import DecisionEngine
 from src.ledger.formal_contract import (
@@ -21,6 +19,10 @@ from src.ledger.shadow import build_v22_shadow_payload
 from src.ledger.snapshot import build_prediction_snapshot
 from src.ledger.store import PredictionLedgerStore
 from src.prediction.production_path import FullAutomatedPredictionResult
+
+if TYPE_CHECKING:
+    from src.acquisition.interface import ProviderClient
+    from src.acquisition.models import ProviderFetchRequest
 
 
 @dataclass(frozen=True)
@@ -53,6 +55,11 @@ def run_formal_acquired_prediction_path(
     ai_models: tuple[str, ...] = (),
 ) -> FormalPredictionResult:
     """Run production V2.1 and freeze a non-interfering V2.2 shadow prediction."""
+
+    # Keep acquisition runtime imports lazy. Importing ``src.acquisition`` executes
+    # its public package initialiser, which also exports the live formal path and
+    # therefore depends back on this module.
+    from src.acquisition.production_path import run_acquired_prediction_path
 
     production = run_acquired_prediction_path(
         request,
