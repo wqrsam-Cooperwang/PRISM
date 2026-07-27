@@ -26,6 +26,7 @@ from src.intelligence.pipeline import build_intelligence_bundle
 from src.prediction.baselines import (
     EloProbabilityModel,
     MarketProbabilityModel,
+    TeamScoringRateExpectedGoalsModel,
     TeamStatisticsProbabilityModel,
 )
 from src.prediction.interface import PredictionModel
@@ -50,12 +51,25 @@ class FullAutomatedPredictionResult:
     report: PredictionReport
 
 
-def _baseline_models(gate: CollectionReadinessGateResult) -> tuple[PredictionModel, ...]:
+def _has_features(model: PredictionModel, features: FeatureVector) -> bool:
+    return all(
+        name in features.values and name not in features.missing_features
+        for name in model.required_features
+    )
+
+
+def _baseline_models(
+    gate: CollectionReadinessGateResult,
+    features: FeatureVector,
+) -> tuple[PredictionModel, ...]:
     models: list[PredictionModel] = [MarketProbabilityModel()]
     if gate.elo_baseline_available:
         models.append(EloProbabilityModel())
     if gate.team_statistics_baseline_available:
         models.append(TeamStatisticsProbabilityModel())
+    scoring_rate_model = TeamScoringRateExpectedGoalsModel()
+    if _has_features(scoring_rate_model, features):
+        models.append(scoring_rate_model)
     return tuple(models)
 
 
@@ -88,7 +102,7 @@ def run_full_automated_prediction_path(
 
     facts = normalize_intelligence_facts(bundle)
     features = build_feature_vector(facts)
-    model_outputs = run_model_suite(_baseline_models(gate), features)
+    model_outputs = run_model_suite(_baseline_models(gate, features), features)
     normalized = normalize_intelligence_bundle(bundle, model_outputs)
     context = build_match_context(
         normalized.request,
