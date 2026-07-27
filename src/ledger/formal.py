@@ -12,6 +12,10 @@ from src.acquisition.models import ProviderFetchRequest
 from src.acquisition.production_path import run_acquired_prediction_path
 from src.collection.interface import ObservationAdapter
 from src.decision.engine import DecisionEngine
+from src.ledger.formal_contract import (
+    validate_formal_prediction_snapshot,
+    validate_persisted_formal_snapshot,
+)
 from src.ledger.models import PredictionLedgerSnapshot
 from src.ledger.shadow import build_v22_shadow_payload
 from src.ledger.snapshot import build_prediction_snapshot
@@ -77,7 +81,9 @@ def run_formal_acquired_prediction_path(
         model_outputs=production.runtime_result.context.model_outputs,
         shadow_predictions={"v2_2": shadow},
     )
+    validate_formal_prediction_snapshot(snapshot)
     ledger_path = ledger_store.persist(snapshot)
+    validate_persisted_formal_snapshot(snapshot, ledger_path)
     return FormalPredictionResult(
         production=production,
         snapshot=snapshot,
