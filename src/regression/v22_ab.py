@@ -14,7 +14,14 @@ from math import exp, factorial
 from statistics import mean
 
 from src.consensus import DirectionCalibrationOutput
-from src.domain.models import AnalysisSession, DecisionOutput, MatchContext, MatchInfo, ModelOutput, TeamInfo
+from src.domain.models import (
+    AnalysisSession,
+    DecisionOutput,
+    MatchContext,
+    MatchInfo,
+    ModelOutput,
+    TeamInfo,
+)
 from src.regression.scoreline import ScorelineEngineMetrics, ScorelineRegressionCase
 from src.scoreline import ScorelineEngine, V22CandidateScorelineEngine
 from src.scoreline.models import ScorelineCandidate
@@ -57,6 +64,14 @@ def _poisson(rate: float, goals: int) -> float:
     return exp(-rate) * (rate**goals) / factorial(goals)
 
 
+def _expected_goals(model: ModelOutput) -> tuple[float, float]:
+    home = model.expected_home_goals
+    away = model.expected_away_goals
+    if home is None or away is None:
+        raise ValueError("V2.2 A/B requires expected-goal inputs")
+    return float(home), float(away)
+
+
 def _aggregate_xg(models: tuple[ModelOutput, ...]) -> tuple[float, float]:
     eligible = tuple(
         model
@@ -65,9 +80,10 @@ def _aggregate_xg(models: tuple[ModelOutput, ...]) -> tuple[float, float]:
     )
     if not eligible:
         raise ValueError("V2.2 A/B requires expected-goal inputs")
+    rates = tuple(_expected_goals(model) for model in eligible)
     return (
-        mean(float(model.expected_home_goals) for model in eligible if model.expected_home_goals is not None),
-        mean(float(model.expected_away_goals) for model in eligible if model.expected_away_goals is not None),
+        mean(home for home, _ in rates),
+        mean(away for _, away in rates),
     )
 
 
@@ -149,7 +165,9 @@ def _metrics(
 ) -> ScorelineEngineMetrics:
     actual = (actual_home, actual_away)
     scores = tuple((item.home_goals, item.away_goals) for item in pair)
-    distances = tuple(abs(home - actual_home) + abs(away - actual_away) for home, away in scores)
+    distances = tuple(
+        abs(home - actual_home) + abs(away - actual_away) for home, away in scores
+    )
     return ScorelineEngineMetrics(
         recommendations=pair,
         primary_exact_hit=scores[0] == actual,
@@ -162,7 +180,9 @@ def _metrics(
     )
 
 
-def compare_v21_v22_scoreline_case(case: ScorelineRegressionCase) -> V22ScorelineABComparison:
+def compare_v21_v22_scoreline_case(
+    case: ScorelineRegressionCase,
+) -> V22ScorelineABComparison:
     """Compare V2.1 and V2.2 scoreline layers without fabricating legacy evidence."""
 
     context = _context(case.models)
@@ -170,7 +190,10 @@ def compare_v21_v22_scoreline_case(case: ScorelineRegressionCase) -> V22Scorelin
     home_xg, away_xg = _aggregate_xg(case.models)
     direction = _xg_direction(home_xg, away_xg)
     v22_output = V22CandidateScorelineEngine().run_with_direction(context, direction)
-    if len(v21_output.recommended_scorelines) != 2 or len(v22_output.recommended_scorelines) != 2:
+    if (
+        len(v21_output.recommended_scorelines) != 2
+        or len(v22_output.recommended_scorelines) != 2
+    ):
         raise ValueError("V2.1/V2.2 A/B requires dual scoreline recommendations")
     return V22ScorelineABComparison(
         case_id=case.case_id,
@@ -201,8 +224,12 @@ def summarize_v21_v22_scoreline_ab(
         v22_primary_hits=sum(item.v22.primary_exact_hit for item in comparisons),
         v21_dual_hits=sum(item.v21.dual_exact_hit for item in comparisons),
         v22_dual_hits=sum(item.v22.dual_exact_hit for item in comparisons),
-        v21_mean_minimum_distance=mean(item.v21.minimum_manhattan_distance for item in comparisons),
-        v22_mean_minimum_distance=mean(item.v22.minimum_manhattan_distance for item in comparisons),
+        v21_mean_minimum_distance=mean(
+            item.v21.minimum_manhattan_distance for item in comparisons
+        ),
+        v22_mean_minimum_distance=mean(
+            item.v22.minimum_manhattan_distance for item in comparisons
+        ),
         v21_shared_story_pairs=sum(item.v21.shared_story_pair for item in comparisons),
         v22_shared_story_pairs=sum(item.v22.shared_story_pair for item in comparisons),
         v22_distance_improved_cases=sum(change < 0 for change in changes),
