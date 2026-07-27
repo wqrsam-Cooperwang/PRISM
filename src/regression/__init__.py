@@ -28,10 +28,7 @@ from src.regression.shadow_outcome import (
     compare_frozen_shadow_outcome,
     summarize_frozen_shadow,
 )
-from src.regression.shadow_validation import (
-    evaluate_v22_promotion_with_shadow,
-    full_stack_shadow_validation_passed,
-)
+from src.regression.shadow_validation import full_stack_shadow_validation_passed
 from src.regression.v22_ab import (
     V22ScorelineABComparison,
     V22ScorelineABSummary,
@@ -42,7 +39,6 @@ from src.regression.v22_promotion import (
     V22_PROMOTION_POLICY_VERSION,
     V22PromotionPolicy,
     V22PromotionResult,
-    evaluate_v22_promotion,
 )
 from src.regression.v22_report import (
     V22_AB_REPORT_VERSION,
@@ -75,8 +71,6 @@ __all__ = [
     "compare_v21_v22_scoreline_case",
     "evaluate_governed_v22_promotion",
     "evaluate_legacy_outcome_case",
-    "evaluate_v22_promotion",
-    "evaluate_v22_promotion_with_shadow",
     "full_stack_shadow_validation_passed",
     "load_governed_ledger_regression_dataset",
     "load_legacy_outcome_cases",
