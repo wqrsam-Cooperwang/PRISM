@@ -48,5 +48,10 @@ def test_dominant_profile_preserves_normalized_candidate_mixture() -> None:
 
 
 def test_invalid_signals_fail_closed_at_profile_boundary() -> None:
-    with pytest.raises(ValueError, match=r"dispersion signals must be finite values in \[0, 1\]"):
-        build_candidate_dispersion_profile(DispersionSignals(information_uncertainty=float("nan")))
+    with pytest.raises(
+        ValueError,
+        match=r"dispersion signals must be finite values in \[0, 1\]",
+    ):
+        build_candidate_dispersion_profile(
+            DispersionSignals(information_uncertainty=float("nan"))
+        )
