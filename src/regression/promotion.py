@@ -41,9 +41,7 @@ def build_v22_promotion_evidence(
     reasons: list[str] = []
 
     if evaluation.case_count < minimum_cases:
-        reasons.append(
-            f"insufficient governed cases: {evaluation.case_count} < {minimum_cases}"
-        )
+        reasons.append(f"insufficient governed cases: {evaluation.case_count} < {minimum_cases}")
     if evaluation.shadow_dual_hits < evaluation.production_dual_hits:
         reasons.append("V2.2 shadow dual-score exact hits regress production")
     if evaluation.shadow_primary_hits < evaluation.production_primary_hits:
