@@ -1,0 +1,60 @@
+{
+  "dataset_id": "legacy-outcome-benchmark-2026-07-v1",
+  "scope": "outcome_benchmark",
+  "notes": [
+    "Cases require independently recovered PRISM exact-score candidates plus an unambiguous 90-minute final score.",
+    "No missing xG, probability, or market inputs are reconstructed.",
+    "AET fixtures are evaluated at 90 minutes.",
+    "Path-changing events are tagged so later model diagnosis can separate pre-match error from in-match shocks."
+  ],
+  "cases": [
+    {"case_id":"LEG-20260627-CPV-KSA","predicted_scores":["1-0","2-1","1-1"],"actual_score":"0-0"},
+    {"case_id":"LEG-20260629-RSA-CAN","predicted_scores":["1-2","0-1","1-1"],"actual_score":"0-1"},
+
+    {"case_id":"PES-000001-A","predicted_scores":["2-0","1-0","2-1"],"actual_score":"2-1"},
+    {"case_id":"PES-000001-B","predicted_scores":["2-0","3-0","2-1"],"actual_score":"1-1"},
+    {"case_id":"PES-000001-C","predicted_scores":["1-1","1-0","2-1"],"actual_score":"1-1"},
+    {"case_id":"PES-000002-A","predicted_scores":["1-2"],"actual_score":"1-2"},
+    {"case_id":"PES-000002-B","predicted_scores":["2-0"],"actual_score":"3-0"},
+    {"case_id":"PES-000002-C","predicted_scores":["1-1"],"actual_score":"2-0"},
+    {"case_id":"PES-000003-A","predicted_scores":["2-0"],"actual_score":"2-1"},
+    {"case_id":"PES-000003-B","predicted_scores":["2-1"],"actual_score":"2-2"},
+    {"case_id":"PES-000003-C","predicted_scores":["2-0"],"actual_score":"2-0"},
+    {"case_id":"PES-000004-A","predicted_scores":["2-0"],"actual_score":"3-0"},
+    {"case_id":"PES-000004-B","predicted_scores":["2-1"],"actual_score":"2-1"},
+    {"case_id":"PES-000004-C","predicted_scores":["2-1"],"actual_score":"2-0"},
+    {"case_id":"PES-000005-A","predicted_scores":["1-1","1-2","1-0"],"actual_score":"1-1"},
+    {"case_id":"PES-000005-B","predicted_scores":["2-0","3-0","2-1"],"actual_score":"1-1"},
+    {"case_id":"PES-000005-C","predicted_scores":["2-1","1-0","1-1"],"actual_score":"1-0"},
+
+    {"case_id":"LEG-20260708-ARG-EGY","predicted_scores":["2-0","3-0","2-1"],"actual_score":"3-2"},
+    {"case_id":"LEG-20260708-SUI-COL","predicted_scores":["1-1","1-0","2-0"],"actual_score":"0-0"},
+    {"case_id":"LEG-20260715-ENG-ARG","predicted_scores":["1-1","1-0","2-1"],"actual_score":"1-2"},
+
+    {"case_id":"LEG-20260719-HAM-DEG","predicted_scores":["3-0","2-0","3-1"],"actual_score":"4-0"},
+
+    {"case_id":"LEG-20260720-TPS-ILV","predicted_scores":["1-1","2-1","1-0"],"actual_score":"1-3"},
+    {"case_id":"LEG-20260720-MAR-LAH","predicted_scores":["0-2","0-1","1-2"],"actual_score":"0-2"},
+    {"case_id":"LEG-20260720-KAL-MAL","predicted_scores":["1-2"],"actual_score":"2-2"},
+    {"case_id":"LEG-20260720-ORG-DIF","predicted_scores":["1-3","0-3","1-2"],"actual_score":"0-0"},
+
+    {"case_id":"LEG-20260721-SAB-KUP","predicted_scores":["1-0","2-0","1-1"],"actual_score":"1-0"},
+    {"case_id":"LEG-20260721-AGF-LEC","predicted_scores":["1-1","0-1","1-0"],"actual_score":"1-4","path_changing_event":true},
+    {"case_id":"LEG-20260721-STU-HEA","predicted_scores":["2-0","2-1","1-0"],"actual_score":"4-0"},
+    {"case_id":"LEG-20260722-OMO-KAI","predicted_scores":["1-0","2-0","1-1"],"actual_score":"1-0"},
+
+    {"case_id":"LEG-20260723-HAM-AND","predicted_scores":["2-1","1-1","1-2"],"actual_score":"1-1"},
+    {"case_id":"LEG-20260723-STG-BEN","predicted_scores":["0-2","1-2","0-3"],"actual_score":"2-1"},
+    {"case_id":"LEG-20260723-BES-MID","predicted_scores":["1-1","1-0","2-1"],"actual_score":"1-0","path_changing_event":true},
+    {"case_id":"LEG-20260723-TWE-FER","predicted_scores":["2-1","1-0","2-0"],"actual_score":"1-2"},
+
+    {"case_id":"LEG-20260724-JAR-SJK","predicted_scores":["1-1","1-2","2-1"],"actual_score":"2-1"},
+    {"case_id":"LEG-20260724-VSK-OIS","predicted_scores":["2-0","3-0","2-1"],"actual_score":"2-0"},
+    {"case_id":"LEG-20260725-DEG-DIF","predicted_scores":["0-1","0-2"],"actual_score":"0-1"},
+
+    {"case_id":"LEG-20260726-SEO-ULS","predicted_scores":["2-1","2-0"],"actual_score":"1-3"},
+    {"case_id":"LEG-20260726-INC-BUC","predicted_scores":["1-0","1-1"],"actual_score":"1-1"},
+    {"case_id":"LEG-20260726-GWA-JEJ","predicted_scores":["0-1","1-1"],"actual_score":"1-2"},
+    {"case_id":"LEG-20260726-ANY-GAN","predicted_scores":["1-1","0-1"],"actual_score":"2-1"}
+  ]
+}
