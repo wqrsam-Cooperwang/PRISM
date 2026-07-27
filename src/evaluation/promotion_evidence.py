@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from src.evaluation.cohort import CohortEvaluationSummary
+from src.evaluation.cohort_summary import CohortEvaluationSummary
 
 
 @dataclass(frozen=True)
