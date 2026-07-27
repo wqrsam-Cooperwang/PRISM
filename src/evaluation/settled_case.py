@@ -37,9 +37,8 @@ def evaluate_settled_case(
         snapshot.payload["report"]["scoreline"]["recommended_scorelines"]
     )
     shadow_scores = _parse_scorelines(
-        snapshot.payload["shadow_predictions"]["v2_2"]["scoreline"][
-            "recommended_scorelines"
-        ]
+        snapshot.payload["shadow_predictions"]["v2_2"]["scoreline"]
+        ["recommended_scorelines"]
     )
     production = minimum_scoreline_error(
         production_scores,
