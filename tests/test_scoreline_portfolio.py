@@ -35,7 +35,10 @@ def test_portfolio_validates_contract() -> None:
     with pytest.raises(ValueError, match="at least two"):
         select_portfolio_pair((_candidate(1, 0, 0.2),))
     with pytest.raises(ValueError, match="candidate_limit"):
-        select_portfolio_pair((_candidate(1, 0, 0.2), _candidate(1, 1, 0.1)), candidate_limit=1)
+        select_portfolio_pair(
+            (_candidate(1, 0, 0.2), _candidate(1, 1, 0.1)),
+            candidate_limit=1,
+        )
     with pytest.raises(ValueError, match="minimum_relative_probability"):
         select_portfolio_pair(
             (_candidate(1, 0, 0.2), _candidate(1, 1, 0.1)),
