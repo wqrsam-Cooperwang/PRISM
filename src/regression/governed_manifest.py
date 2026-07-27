@@ -36,11 +36,22 @@ def build_governed_cohort_manifest(
 
     pairs = load_governed_settled_ledger_pairs(prediction_root, outcome_root)
     identities = sorted((snapshot.prediction_id, snapshot.match_id) for snapshot, _ in pairs)
+    prediction_ids = tuple(prediction_id for prediction_id, _ in identities)
+    match_ids = tuple(match_id for _, match_id in identities)
+    _require_unique(prediction_ids, "prediction_id")
+    _require_unique(match_ids, "match_id")
     canonical = json.dumps(identities, ensure_ascii=False, separators=(",", ":"))
     digest = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
     return GovernedCohortManifest(
         case_count=len(identities),
-        prediction_ids=tuple(prediction_id for prediction_id, _ in identities),
-        match_ids=tuple(match_id for _, match_id in identities),
+        prediction_ids=prediction_ids,
+        match_ids=match_ids,
         sha256=digest,
     )
+
+
+def _require_unique(values: tuple[str, ...], field: str) -> None:
+    duplicates = sorted(value for value in set(values) if values.count(value) > 1)
+    if duplicates:
+        joined = ", ".join(duplicates)
+        raise ValueError(f"governed promotion cohort contains duplicate {field}: {joined}")
