@@ -204,7 +204,7 @@ def test_manifest_rejects_duplicate_prediction_ids(tmp_path: Path) -> None:
 
     with pytest.raises(
         ValueError,
-        match="governed promotion cohort contains duplicate prediction_id: prediction-duplicate",
+        match="duplicate formal ledger prediction_id: prediction-duplicate",
     ):
         build_governed_cohort_manifest(predictions, outcomes)
 
@@ -226,6 +226,6 @@ def test_manifest_rejects_duplicate_match_ids(tmp_path: Path) -> None:
 
     with pytest.raises(
         ValueError,
-        match="governed promotion cohort contains duplicate match_id: match-a",
+        match="duplicate formal ledger match_id: match-a",
     ):
         build_governed_cohort_manifest(predictions, outcomes)
