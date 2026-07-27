@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import pytest
-
 from src.regression import governed_promotion
 from src.regression.shadow_outcome import FrozenShadowSummary
 from src.regression.v22_ab import V22ScorelineABSummary
@@ -126,6 +125,17 @@ def test_governed_cohort_count_mismatch_fails_closed(monkeypatch):
     )
 
     with pytest.raises(ValueError, match="identical case counts"):
+        governed_promotion.evaluate_governed_v22_promotion()
+
+
+def test_governed_summary_count_mismatch_fails_closed(monkeypatch):
+    _wire_summaries(
+        monkeypatch,
+        _scoreline_summary(case_count=30),
+        _shadow_summary(case_count=29),
+    )
+
+    with pytest.raises(ValueError, match="summaries must cover the same cohort"):
         governed_promotion.evaluate_governed_v22_promotion()
 
 
