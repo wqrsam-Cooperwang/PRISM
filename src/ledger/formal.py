@@ -13,6 +13,7 @@ from src.acquisition.production_path import run_acquired_prediction_path
 from src.collection.interface import ObservationAdapter
 from src.decision.engine import DecisionEngine
 from src.ledger.models import PredictionLedgerSnapshot
+from src.ledger.shadow import build_v22_shadow_payload
 from src.ledger.snapshot import build_prediction_snapshot
 from src.ledger.store import PredictionLedgerStore
 from src.prediction.production_path import FullAutomatedPredictionResult
@@ -47,7 +48,7 @@ def run_formal_acquired_prediction_path(
     operator: str | None = None,
     ai_models: tuple[str, ...] = (),
 ) -> FormalPredictionResult:
-    """Run the full acquired path and fail closed unless its snapshot persists."""
+    """Run production V2.1 and freeze a non-interfering V2.2 shadow prediction."""
 
     production = run_acquired_prediction_path(
         request,
@@ -66,6 +67,7 @@ def run_formal_acquired_prediction_path(
         operator=operator,
         ai_models=ai_models,
     )
+    shadow = build_v22_shadow_payload(production.runtime_result.context)
     snapshot = build_prediction_snapshot(
         production.report,
         production.observations,
@@ -73,6 +75,7 @@ def run_formal_acquired_prediction_path(
         production.features,
         frozen_at=frozen_at,
         model_outputs=production.runtime_result.context.model_outputs,
+        shadow_predictions={"v2_2": shadow},
     )
     ledger_path = ledger_store.persist(snapshot)
     return FormalPredictionResult(
