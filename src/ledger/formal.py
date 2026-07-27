@@ -6,7 +6,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from src.collection.interface import ObservationAdapter
 from src.decision.engine import DecisionEngine
@@ -23,6 +23,19 @@ from src.prediction.production_path import FullAutomatedPredictionResult
 if TYPE_CHECKING:
     from src.acquisition.interface import ProviderClient
     from src.acquisition.models import ProviderFetchRequest
+
+
+def run_acquired_prediction_path(*args: Any, **kwargs: Any) -> FullAutomatedPredictionResult:
+    """Lazy compatibility seam for the acquisition production path.
+
+    Keeping this symbol at module scope preserves the established monkeypatch seam
+    used by ledger tests while deferring the acquisition import until invocation,
+    which avoids the package-initialisation cycle through ``live_production``.
+    """
+
+    from src.acquisition.production_path import run_acquired_prediction_path as run
+
+    return run(*args, **kwargs)
 
 
 @dataclass(frozen=True)
@@ -55,11 +68,6 @@ def run_formal_acquired_prediction_path(
     ai_models: tuple[str, ...] = (),
 ) -> FormalPredictionResult:
     """Run production V2.1 and freeze a non-interfering V2.2 shadow prediction."""
-
-    # Keep acquisition runtime imports lazy. Importing ``src.acquisition`` executes
-    # its public package initialiser, which also exports the live formal path and
-    # therefore depends back on this module.
-    from src.acquisition.production_path import run_acquired_prediction_path
 
     production = run_acquired_prediction_path(
         request,
