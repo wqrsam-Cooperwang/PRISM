@@ -178,6 +178,40 @@ def build_feature_vector(
             values[name] = value
             missing.discard(name)
 
+    scoring_features = {
+        "home_goals_for_per_game": _nested_numeric(
+            data,
+            "team_strength",
+            "home",
+            "goals_for_per_game",
+            "home_goals_for_per_game",
+        ),
+        "home_goals_against_per_game": _nested_numeric(
+            data,
+            "team_strength",
+            "home",
+            "goals_against_per_game",
+            "home_goals_against_per_game",
+        ),
+        "away_goals_for_per_game": _nested_numeric(
+            data,
+            "team_strength",
+            "away",
+            "goals_for_per_game",
+            "away_goals_for_per_game",
+        ),
+        "away_goals_against_per_game": _nested_numeric(
+            data,
+            "team_strength",
+            "away",
+            "goals_against_per_game",
+            "away_goals_against_per_game",
+        ),
+    }
+    for name, value in scoring_features.items():
+        if value is not None:
+            values[name] = value
+
     market = _market_features(data)
     if market is not None:
         values.update(market)
