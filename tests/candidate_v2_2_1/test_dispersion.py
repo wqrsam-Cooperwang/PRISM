@@ -17,9 +17,7 @@ def test_neutral_signals_preserve_unit_width_without_tail_weight() -> None:
 
 
 def test_regime_and_dominance_widen_home_tail_without_mutating_away_equally() -> None:
-    decision = conditional_tail_width(
-        DispersionSignals(regime_break=1.0, dominance_risk=1.0)
-    )
+    decision = conditional_tail_width(DispersionSignals(regime_break=1.0, dominance_risk=1.0))
 
     assert decision.home_width == pytest.approx(1.8)
     assert decision.away_width == pytest.approx(0.95)
@@ -55,5 +53,8 @@ def test_information_uncertainty_widens_both_sides_and_adds_small_low_event_mass
     ),
 )
 def test_invalid_signals_fail_closed(signals: DispersionSignals) -> None:
-    with pytest.raises(ValueError, match=r"dispersion signals must be finite values in \[0, 1\]"):
+    with pytest.raises(
+        ValueError,
+        match=r"dispersion signals must be finite values in \[0, 1\]",
+    ):
         conditional_tail_width(signals)
