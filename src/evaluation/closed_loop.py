@@ -8,14 +8,14 @@ from pathlib import Path
 from src.evaluation.governed import GovernedEvaluationResult, evaluate_governed_settled_cohort
 from src.evaluation.promotion_evidence import PromotionEvidenceDecision, assess_promotion_evidence
 from src.ledger.outcomes import FileSystemOutcomeLedgerStore, MatchOutcome
-from src.ledger.settlement import SettlementResult, settle_verified_outcome
+from src.ledger.settlement import SettledOutcomeResult, settle_verified_outcome
 
 
 @dataclass(frozen=True)
 class PostMatchClosedLoopResult:
     """Result of one verified outcome entering the governed forward-test loop."""
 
-    settlement: SettlementResult
+    settlement: SettledOutcomeResult
     evaluation: GovernedEvaluationResult
     promotion_evidence: PromotionEvidenceDecision
 
