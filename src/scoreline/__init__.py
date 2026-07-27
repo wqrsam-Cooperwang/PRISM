@@ -2,6 +2,7 @@
 
 from src.scoreline.engine import ScorelineEngine
 from src.scoreline.models import ScorelineCandidate, ScorelineOutput
+from src.scoreline.portfolio import select_portfolio_pair
 from src.scoreline.regime import RegimeClassification, ScorelineRegime, ScorelineRegimeClassifier
 from src.scoreline.regime_policy import ScenarioWeights, scenario_weights_for_regime
 from src.scoreline.v22_candidate import V22CandidateScorelineEngine
@@ -16,4 +17,5 @@ __all__ = [
     "ScorelineRegimeClassifier",
     "V22CandidateScorelineEngine",
     "scenario_weights_for_regime",
+    "select_portfolio_pair",
 ]
