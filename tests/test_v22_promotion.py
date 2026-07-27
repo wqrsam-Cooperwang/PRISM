@@ -4,12 +4,12 @@ from src.regression import (
     V22PromotionPolicy,
     V22ScorelineABSummary,
     compare_v21_v22_scoreline_case,
-    evaluate_v22_promotion,
     load_scoreline_regression_dataset,
     render_v22_ab_json,
     render_v22_ab_markdown,
     summarize_v21_v22_scoreline_ab,
 )
+from src.regression.v22_promotion import evaluate_v22_promotion
 
 DATASET = Path("data/regression/legacy-airtable-2026-07.json")
 
