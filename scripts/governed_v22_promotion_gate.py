@@ -6,8 +6,13 @@ import argparse
 import json
 from pathlib import Path
 
-from src.regression import V22PromotionPolicy, evaluate_governed_v22_promotion
+from src.regression import (
+    V22_PROMOTION_POLICY_VERSION,
+    V22PromotionPolicy,
+    evaluate_governed_v22_promotion,
+)
 
+GOVERNED_V22_PROMOTION_ARTIFACT_VERSION = "1.0.0"
 EXIT_CODES = {
     "promote": 0,
     "hold": 2,
@@ -58,10 +63,28 @@ def run_gate(
         outcome_root,
         policy=policy,
     )
+    exit_code = EXIT_CODES[result.decision]
     payload = result.to_dict()
-    payload["gate"] = "governed_v22_promotion"
-    payload["prediction_root"] = str(prediction_root)
-    payload["outcome_root"] = str(outcome_root)
+    payload.update(
+        {
+            "artifact_version": GOVERNED_V22_PROMOTION_ARTIFACT_VERSION,
+            "gate": "governed_v22_promotion",
+            "policy": {
+                "version": V22_PROMOTION_POLICY_VERSION,
+                "minimum_scoreline_case_count": policy.minimum_scoreline_case_count,
+                "minimum_full_stack_case_count": policy.minimum_full_stack_case_count,
+                "require_full_stack_validation": policy.require_full_stack_validation,
+            },
+            "provenance": {
+                "prediction_root": str(prediction_root),
+                "outcome_root": str(outcome_root),
+            },
+            "release_gate": {
+                "allowed": result.decision == "promote",
+                "exit_code": exit_code,
+            },
+        }
+    )
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(
@@ -69,7 +92,7 @@ def run_gate(
         encoding="utf-8",
     )
     print(json.dumps(payload, sort_keys=True))
-    return EXIT_CODES[result.decision]
+    return exit_code
 
 
 def main() -> int:
