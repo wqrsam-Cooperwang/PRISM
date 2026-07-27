@@ -71,9 +71,7 @@ def select_portfolio_pair(
     top_probability = ranked[0].probability
     floor = top_probability * minimum_relative_probability
     pool = tuple(
-        candidate
-        for candidate in ranked[:candidate_limit]
-        if candidate.probability >= floor
+        candidate for candidate in ranked[:candidate_limit] if candidate.probability >= floor
     )
     if len(pool) < 2:
         return ranked[0], ranked[1]
