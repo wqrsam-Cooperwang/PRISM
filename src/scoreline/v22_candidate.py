@@ -115,7 +115,10 @@ class V22CandidateScorelineEngine(ScorelineEngine):
                 f"regime={classification.regime.value}",
                 f"scenario_weights={scenario_summary}",
                 f"effective_xg_weights={assumption_summary}",
-                "Dual recommendations use candidate portfolio optimization across result, total-goals, and clean-sheet stories.",
+                (
+                    "Dual recommendations use candidate portfolio optimization across "
+                    "result, total-goals, and clean-sheet stories."
+                ),
                 "Candidate only: production V2.1 remains unchanged pending A/B evidence.",
             ),
         )
