@@ -34,7 +34,9 @@ class V22CandidateScorelineEngine(ScorelineEngine):
             return ScorelineOutput(
                 available=False,
                 method="regime_scenario_mixture_poisson_v2_2_candidate",
-                rationale=("Scoreline unavailable because no model supplied both expected-goal values.",),
+                rationale=(
+                    "Scoreline unavailable because no model supplied both expected-goal values.",
+                ),
             )
 
         xg_weights = family_capped_weights(eligible, use_assumption_family=True)
@@ -45,7 +47,11 @@ class V22CandidateScorelineEngine(ScorelineEngine):
         base_away_xg = sum(
             self._expected_goals(model)[1] * weight for model, weight in weighted_models
         )
-        classification = ScorelineRegimeClassifier().run(direction, base_home_xg, base_away_xg)
+        classification = ScorelineRegimeClassifier().run(
+            direction,
+            base_home_xg,
+            base_away_xg,
+        )
         scenario_weights = scenario_weights_for_regime(classification.regime)
         scenarios = self._scenario_rates(base_home_xg, base_away_xg)
 
@@ -93,7 +99,9 @@ class V22CandidateScorelineEngine(ScorelineEngine):
             f"{model.model_id}:{assumption_family(model)}:{weight:.6f}"
             for model, weight in weighted_models
         )
-        scenario_summary = ",".join(f"{name}:{weight:.2f}" for name, weight in scenario_weights)
+        scenario_summary = ",".join(
+            f"{name}:{weight:.2f}" for name, weight in scenario_weights
+        )
 
         return ScorelineOutput(
             available=True,
