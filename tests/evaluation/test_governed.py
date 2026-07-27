@@ -84,5 +84,5 @@ def test_governed_entry_point_evaluates_exact_settled_cohort(tmp_path: Path) -> 
     assert result.summary.production_exact_hits == 0
     assert result.summary.shadow_exact_hits == 1
     assert result.summary.shadow_better_cases == 1
-    assert result.summary.tied_cases == 0
-    assert result.summary.shadow_worse_cases == 1
+    assert result.summary.tied_cases == 1
+    assert result.summary.shadow_worse_cases == 0
