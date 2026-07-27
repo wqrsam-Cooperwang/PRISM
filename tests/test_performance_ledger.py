@@ -30,6 +30,13 @@ NOW = datetime(2026, 7, 26, 12, 0, tzinfo=timezone.utc)
 KICKOFF = NOW + timedelta(hours=4)
 
 
+def _recommended_scorelines() -> tuple[ScorelineCandidateReport, ScorelineCandidateReport]:
+    return (
+        ScorelineCandidateReport(home_goals=1, away_goals=0, probability=0.14),
+        ScorelineCandidateReport(home_goals=1, away_goals=1, probability=0.13),
+    )
+
+
 def _report() -> PredictionReport:
     return PredictionReport(
         match=MatchReport(
@@ -56,10 +63,8 @@ def _report() -> PredictionReport:
             method="poisson",
             expected_home_goals=1.62,
             expected_away_goals=0.94,
-            top_scorelines=(
-                ScorelineCandidateReport(home_goals=1, away_goals=0, probability=0.14),
-                ScorelineCandidateReport(home_goals=1, away_goals=1, probability=0.13),
-            ),
+            top_scorelines=_recommended_scorelines(),
+            recommended_scorelines=_recommended_scorelines(),
             source_model_ids=("elo", "market"),
             grid_probability_mass=0.98,
             tail_mass=0.02,
@@ -130,6 +135,30 @@ def _model_output() -> ModelOutput:
     )
 
 
+def _available_shadow() -> dict[str, object]:
+    scorelines = [
+        {"home_goals": 1, "away_goals": 0, "probability": 0.14},
+        {"home_goals": 1, "away_goals": 1, "probability": 0.13},
+    ]
+    return {
+        "schema_version": "1.0.0",
+        "candidate_version": "2.2.0-candidate1",
+        "status": "available",
+        "direction_calibration": {
+            "home_probability": 0.48,
+            "draw_probability": 0.29,
+            "away_probability": 0.23,
+            "reliability": 0.80,
+            "method": "test",
+        },
+        "scoreline": {
+            "available": True,
+            "method": "regime_scenario_mixture_poisson_v2_2_candidate",
+            "recommended_scorelines": scorelines,
+        },
+    }
+
+
 def test_snapshot_contains_auditable_exact_score_and_source_data() -> None:
     snapshot = build_prediction_snapshot(
         _report(),
@@ -195,6 +224,11 @@ def test_formal_prediction_fails_closed_when_persistence_fails(monkeypatch) -> N
         formal_module,
         "run_acquired_prediction_path",
         lambda *args, **kwargs: production,
+    )
+    monkeypatch.setattr(
+        formal_module,
+        "build_v22_shadow_payload",
+        lambda context: _available_shadow(),
     )
 
     class FailingStore:
