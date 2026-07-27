@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from pathlib import Path
 
@@ -44,6 +45,25 @@ def _parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _ledger_fingerprint(root: Path) -> dict[str, object]:
+    """Return deterministic provenance for the exact files consumed under one ledger root."""
+
+    digest = hashlib.sha256()
+    file_count = 0
+    for path in sorted(item for item in root.rglob("*") if item.is_file()):
+        relative_path = path.relative_to(root).as_posix()
+        digest.update(relative_path.encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(path.read_bytes())
+        digest.update(b"\0")
+        file_count += 1
+    return {
+        "root": str(root),
+        "file_count": file_count,
+        "sha256": digest.hexdigest(),
+    }
+
+
 def run_gate(
     prediction_root: Path,
     outcome_root: Path,
@@ -76,8 +96,8 @@ def run_gate(
                 "require_full_stack_validation": policy.require_full_stack_validation,
             },
             "provenance": {
-                "prediction_root": str(prediction_root),
-                "outcome_root": str(outcome_root),
+                "prediction_ledger": _ledger_fingerprint(prediction_root),
+                "outcome_ledger": _ledger_fingerprint(outcome_root),
             },
             "release_gate": {
                 "allowed": result.decision == "promote",
