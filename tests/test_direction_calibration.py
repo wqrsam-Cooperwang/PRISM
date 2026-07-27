@@ -24,7 +24,7 @@ def _evidence(score: int = 81) -> EvidenceOutput:
     return EvidenceOutput(
         score=score,
         raw_score=float(score),
-        gate=EvidenceGate.ACCEPTED,
+        gate=EvidenceGate.STANDARD,
     )
 
 
