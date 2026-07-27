@@ -99,9 +99,7 @@ class V22CandidateScorelineEngine(ScorelineEngine):
             f"{model.model_id}:{assumption_family(model)}:{weight:.6f}"
             for model, weight in weighted_models
         )
-        scenario_summary = ",".join(
-            f"{name}:{weight:.2f}" for name, weight in scenario_weights
-        )
+        scenario_summary = ",".join(f"{name}:{weight:.2f}" for name, weight in scenario_weights)
 
         return ScorelineOutput(
             available=True,
