@@ -56,9 +56,7 @@ def evaluate_governed_v22_promotion(
         tuple(compare_frozen_shadow_outcome(snapshot, outcome) for snapshot, outcome in pairs)
     )
     if scoreline_summary.case_count != shadow_summary.case_count:
-        raise ValueError(
-            "governed scoreline and full-stack summaries must cover the same cohort"
-        )
+        raise ValueError("governed scoreline and full-stack summaries must cover the same cohort")
 
     return evaluate_v22_promotion_with_shadow(
         scoreline_summary,
