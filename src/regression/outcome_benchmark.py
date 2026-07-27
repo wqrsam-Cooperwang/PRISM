@@ -6,7 +6,6 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 from statistics import mean
-from typing import Any
 
 
 def _parse_score(value: str) -> tuple[int, int]:
@@ -97,14 +96,17 @@ def load_legacy_outcome_cases(path: Path | str) -> tuple[LegacyOutcomeCase, ...]
             raise ValueError("legacy outcome case_id must be non-blank text")
         if not isinstance(predicted, list) or not predicted:
             raise ValueError("legacy outcome predicted_scores must be non-empty")
-        if not all(isinstance(item, str) for item in predicted):
-            raise ValueError("legacy outcome predicted_scores must contain text scores")
+        predicted_scores: list[str] = []
+        for item in predicted:
+            if not isinstance(item, str):
+                raise ValueError("legacy outcome predicted_scores must contain text scores")
+            predicted_scores.append(item)
         if not isinstance(actual, str):
             raise ValueError("legacy outcome actual_score must be text")
         cases.append(
             LegacyOutcomeCase(
                 case_id=case_id.strip(),
-                predicted_scores=tuple(_parse_score(item) for item in predicted),
+                predicted_scores=tuple(_parse_score(item) for item in predicted_scores),
                 actual_score=_parse_score(actual),
                 path_changing_event=bool(raw.get("path_changing_event", False)),
             )
@@ -130,14 +132,19 @@ def evaluate_legacy_outcome_case(case: LegacyOutcomeCase) -> LegacyOutcomeMetric
     )
 
     if actual_family == "home":
-        weak_side_tail_miss = actual[1] > 0 and all(item[1] == 0 for item in case.predicted_scores)
+        weak_side_tail_miss = actual[1] > 0 and all(
+            item[1] == 0 for item in case.predicted_scores
+        )
     elif actual_family == "away":
-        weak_side_tail_miss = actual[0] > 0 and all(item[0] == 0 for item in case.predicted_scores)
+        weak_side_tail_miss = actual[0] > 0 and all(
+            item[0] == 0 for item in case.predicted_scores
+        )
     else:
         weak_side_tail_miss = clean_sheet_overconfidence
 
     predicted_total = primary[0] + primary[1]
     actual_total = actual[0] + actual[1]
+    same_story = len(set(predicted_families)) == 1 and len(predicted_families) > 1
     return LegacyOutcomeMetrics(
         case_id=case.case_id,
         primary_exact_hit=primary == actual,
@@ -148,7 +155,7 @@ def evaluate_legacy_outcome_case(case: LegacyOutcomeCase) -> LegacyOutcomeMetric
         clean_sheet_overconfidence=clean_sheet_overconfidence,
         weak_side_tail_miss=weak_side_tail_miss,
         total_goals_error=predicted_total - actual_total,
-        same_result_story_cluster=len(set(predicted_families)) == 1 and len(predicted_families) > 1,
+        same_result_story_cluster=same_story,
         path_changing_event=case.path_changing_event,
     )
 
@@ -168,7 +175,9 @@ def summarize_legacy_outcomes(
             any_exact_hits=sum(item.any_exact_hit for item in metrics),
             primary_direction_hits=sum(item.primary_direction_hit for item in metrics),
             any_direction_hits=sum(item.any_direction_hit for item in metrics),
-            mean_minimum_distance=mean(item.minimum_manhattan_distance for item in metrics),
+            mean_minimum_distance=mean(
+                item.minimum_manhattan_distance for item in metrics
+            ),
             clean_sheet_overconfidence_cases=sum(
                 item.clean_sheet_overconfidence for item in metrics
             ),
@@ -177,7 +186,9 @@ def summarize_legacy_outcomes(
                 item.same_result_story_cluster for item in metrics
             ),
             path_changing_event_cases=sum(item.path_changing_event for item in metrics),
-            mean_absolute_total_goals_error=mean(abs(item.total_goals_error) for item in metrics),
+            mean_absolute_total_goals_error=mean(
+                abs(item.total_goals_error) for item in metrics
+            ),
         ),
         metrics,
     )
