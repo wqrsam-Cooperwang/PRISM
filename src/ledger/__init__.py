@@ -1,5 +1,6 @@
 """Public autonomous performance-ledger API for PRISM."""
 
+from src.ledger.cohort import load_formal_forward_testing_cohort
 from src.ledger.formal import FormalPredictionResult, run_formal_acquired_prediction_path
 from src.ledger.formal_contract import (
     validate_formal_prediction_snapshot,
@@ -22,6 +23,7 @@ __all__ = [
     "PredictionLedgerStore",
     "build_prediction_snapshot",
     "build_v22_shadow_payload",
+    "load_formal_forward_testing_cohort",
     "run_formal_acquired_prediction_path",
     "validate_formal_prediction_snapshot",
     "validate_persisted_formal_snapshot",
