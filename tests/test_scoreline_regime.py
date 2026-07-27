@@ -1,7 +1,11 @@
 import pytest
 
 from src.consensus import DirectionCalibrationOutput
-from src.scoreline import ScorelineRegime, ScorelineRegimeClassifier, scenario_weights_for_regime
+from src.scoreline import (
+    ScorelineRegime,
+    ScorelineRegimeClassifier,
+    scenario_weights_for_regime,
+)
 
 
 def _direction(home: float, draw: float, away: float) -> DirectionCalibrationOutput:
