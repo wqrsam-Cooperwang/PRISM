@@ -13,6 +13,7 @@ from src.acquisition import (
 from src.collection import (
     AvailabilityScheduleAdapter,
     SourceEnvelope,
+    TeamStatisticsAdapter,
     TeamStrengthFormAdapter,
     WeatherLineupAdapter,
 )
@@ -96,6 +97,30 @@ def _envelope(
     )
 
 
+def _statistics(side: str, *, scored: int, conceded: int, form: str) -> SourceEnvelope:
+    return _envelope(
+        "team_statistics",
+        f"statistics-{side}",
+        SourceType.PRIMARY_DATA,
+        {
+            "side": side,
+            "statistics": {
+                "fixtures": {
+                    "played": {"total": 20},
+                    "wins": {"total": 8 if side == "home" else 10},
+                    "draws": {"total": 6},
+                    "loses": {"total": 6 if side == "home" else 4},
+                },
+                "goals": {
+                    "for": {"total": {"total": scored}},
+                    "against": {"total": {"total": conceded}},
+                },
+                "form": form,
+            },
+        },
+    )
+
+
 def _supplemental_clients() -> tuple[FixtureProviderClient, ...]:
     strength = _envelope(
         "team_strength_form",
@@ -134,10 +159,14 @@ def _supplemental_clients() -> tuple[FixtureProviderClient, ...]:
             "away": {"formation": "4-2-3-1"},
         },
     )
+    home_statistics = _statistics("home", scored=28, conceded=24, form="WDLWW")
+    away_statistics = _statistics("away", scored=32, conceded=20, form="WWDWL")
     return (
         FixtureProviderClient("strength", (strength,)),
         FixtureProviderClient("availability", (availability,)),
         FixtureProviderClient("weather", (weather,)),
+        FixtureProviderClient("statistics-home", (home_statistics,)),
+        FixtureProviderClient("statistics-away", (away_statistics,)),
     )
 
 
@@ -146,6 +175,7 @@ def _supplemental_adapters():
         TeamStrengthFormAdapter(),
         AvailabilityScheduleAdapter(),
         WeatherLineupAdapter(),
+        TeamStatisticsAdapter(),
     )
 
 
@@ -169,6 +199,7 @@ def test_live_market_data_runs_through_existing_full_production_path() -> None:
     assert by_key["away_decimal_odds"] == pytest.approx(2.75)
     assert result.features.values["elo_difference"] == pytest.approx(-80.0)
     assert result.report.scoreline is not None
+    assert result.report.scoreline.available is True
     assert SECRET not in repr(result)
 
 
