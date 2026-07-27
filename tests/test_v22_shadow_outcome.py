@@ -4,7 +4,10 @@ import pytest
 
 from src.ledger import MatchOutcome, PredictionLedgerSnapshot
 from src.regression import (
+    FrozenShadowSummary,
+    V22ScorelineABSummary,
     compare_frozen_shadow_outcome,
+    evaluate_v22_promotion_with_shadow,
     full_stack_shadow_validation_passed,
     summarize_frozen_shadow,
 )
@@ -79,3 +82,40 @@ def test_full_stack_shadow_summary_can_pass_validation() -> None:
 def test_unavailable_shadow_is_excluded_from_full_stack_evaluation() -> None:
     with pytest.raises(ValueError, match="not available"):
         compare_frozen_shadow_outcome(_snapshot(shadow_status="unavailable"), _outcome())
+
+
+def test_shadow_summary_can_drive_promotion_gate_without_manual_boolean() -> None:
+    scoreline = V22ScorelineABSummary(
+        case_count=30,
+        v21_primary_hits=4,
+        v22_primary_hits=4,
+        v21_dual_hits=7,
+        v22_dual_hits=8,
+        v21_mean_minimum_distance=1.1,
+        v22_mean_minimum_distance=1.0,
+        v21_shared_story_pairs=8,
+        v22_shared_story_pairs=7,
+        v22_distance_improved_cases=8,
+        v22_distance_worsened_cases=4,
+        distance_tied_cases=18,
+    )
+    shadow = FrozenShadowSummary(
+        case_count=30,
+        v21_primary_hits=5,
+        v22_primary_hits=6,
+        v21_dual_hits=9,
+        v22_dual_hits=10,
+        v21_mean_minimum_distance=1.05,
+        v22_mean_minimum_distance=0.95,
+        v21_shared_story_pairs=7,
+        v22_shared_story_pairs=6,
+        v22_distance_improved_cases=9,
+        v22_distance_worsened_cases=4,
+        distance_tied_cases=17,
+    )
+
+    result = evaluate_v22_promotion_with_shadow(scoreline, shadow)
+
+    assert result.decision == "promote"
+    assert result.full_stack_case_count == 30
+    assert result.full_stack_validation_passed is True
