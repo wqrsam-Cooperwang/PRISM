@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Mapping
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -46,8 +47,6 @@ def validate_formal_prediction_snapshot(snapshot: PredictionLedgerSnapshot) -> N
     production_scoreline = _mapping(report.get("scoreline"), "payload.report.scoreline")
 
     kickoff_text = _non_empty_text(match.get("kickoff"), "payload.report.match.kickoff")
-    from datetime import datetime
-
     kickoff = datetime.fromisoformat(kickoff_text)
     if kickoff.tzinfo is None or kickoff.utcoffset() is None:
         raise ValueError("payload.report.match.kickoff must be timezone-aware")
@@ -68,7 +67,10 @@ def validate_formal_prediction_snapshot(snapshot: PredictionLedgerSnapshot) -> N
         raise ValueError("formal prediction requires frozen model outputs")
     for index, model in enumerate(model_outputs):
         model_mapping = _mapping(model, f"payload.model_outputs[{index}]")
-        _non_empty_text(model_mapping.get("model_id"), f"payload.model_outputs[{index}].model_id")
+        _non_empty_text(
+            model_mapping.get("model_id"),
+            f"payload.model_outputs[{index}].model_id",
+        )
         _non_empty_text(
             model_mapping.get("model_version"),
             f"payload.model_outputs[{index}].model_version",
@@ -76,7 +78,10 @@ def validate_formal_prediction_snapshot(snapshot: PredictionLedgerSnapshot) -> N
 
     shadows = _mapping(payload.get("shadow_predictions"), "payload.shadow_predictions")
     shadow = _mapping(shadows.get("v2_2"), "payload.shadow_predictions.v2_2")
-    _non_empty_text(shadow.get("schema_version"), "payload.shadow_predictions.v2_2.schema_version")
+    _non_empty_text(
+        shadow.get("schema_version"),
+        "payload.shadow_predictions.v2_2.schema_version",
+    )
     _non_empty_text(
         shadow.get("candidate_version"),
         "payload.shadow_predictions.v2_2.candidate_version",
