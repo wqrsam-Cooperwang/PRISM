@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-07-27T20:07:48.339046+00:00",
+  "workflow": "CI",
+  "run_id": 30301197924,
+  "run_number": 629,
+  "run_attempt": 1,
+  "event": "push",
+  "head_sha": "4ce46e4366b7b96c8bcf265614955f91ae9a15d4",
+  "conclusion": "success",
+  "run_url": "https://github.com/wqrsam-Cooperwang/PRISM/actions/runs/30301197924",
+  "jobs": [
+    {
+      "id": 90094273163,
+      "name": "quality",
+      "conclusion": "success",
+      "html_url": "https://github.com/wqrsam-Cooperwang/PRISM/actions/runs/30301197924/job/90094273163",
+      "failed_steps": []
+    }
+  ],
+  "error_excerpt": ""
+}
