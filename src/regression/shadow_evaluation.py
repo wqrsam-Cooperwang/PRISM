@@ -33,8 +33,7 @@ def evaluate_governed_v22_shadow(
 
     cases = load_governed_ledger_regression_dataset(prediction_root, outcome_root)
     snapshots = {
-        item.prediction_id: item
-        for item in load_formal_forward_testing_cohort(prediction_root)
+        item.prediction_id: item for item in load_formal_forward_testing_cohort(prediction_root)
     }
     outcomes = Path(outcome_root)
 
