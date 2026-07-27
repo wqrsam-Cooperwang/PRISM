@@ -132,13 +132,9 @@ def evaluate_legacy_outcome_case(case: LegacyOutcomeCase) -> LegacyOutcomeMetric
     )
 
     if actual_family == "home":
-        weak_side_tail_miss = actual[1] > 0 and all(
-            item[1] == 0 for item in case.predicted_scores
-        )
+        weak_side_tail_miss = actual[1] > 0 and all(item[1] == 0 for item in case.predicted_scores)
     elif actual_family == "away":
-        weak_side_tail_miss = actual[0] > 0 and all(
-            item[0] == 0 for item in case.predicted_scores
-        )
+        weak_side_tail_miss = actual[0] > 0 and all(item[0] == 0 for item in case.predicted_scores)
     else:
         weak_side_tail_miss = clean_sheet_overconfidence
 
@@ -175,20 +171,14 @@ def summarize_legacy_outcomes(
             any_exact_hits=sum(item.any_exact_hit for item in metrics),
             primary_direction_hits=sum(item.primary_direction_hit for item in metrics),
             any_direction_hits=sum(item.any_direction_hit for item in metrics),
-            mean_minimum_distance=mean(
-                item.minimum_manhattan_distance for item in metrics
-            ),
+            mean_minimum_distance=mean(item.minimum_manhattan_distance for item in metrics),
             clean_sheet_overconfidence_cases=sum(
                 item.clean_sheet_overconfidence for item in metrics
             ),
             weak_side_tail_miss_cases=sum(item.weak_side_tail_miss for item in metrics),
-            same_result_story_cluster_cases=sum(
-                item.same_result_story_cluster for item in metrics
-            ),
+            same_result_story_cluster_cases=sum(item.same_result_story_cluster for item in metrics),
             path_changing_event_cases=sum(item.path_changing_event for item in metrics),
-            mean_absolute_total_goals_error=mean(
-                abs(item.total_goals_error) for item in metrics
-            ),
+            mean_absolute_total_goals_error=mean(abs(item.total_goals_error) for item in metrics),
         ),
         metrics,
     )
