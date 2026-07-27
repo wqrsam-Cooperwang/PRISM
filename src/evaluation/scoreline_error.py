@@ -43,8 +43,7 @@ def minimum_scoreline_error(
     if not predicted_scorelines:
         raise ValueError("predicted_scorelines must not be empty")
     errors = tuple(
-        ScorelineError(home, away, actual_home, actual_away)
-        for home, away in predicted_scorelines
+        ScorelineError(home, away, actual_home, actual_away) for home, away in predicted_scorelines
     )
     return min(errors, key=lambda error: error.goal_distance)
 
