@@ -26,9 +26,7 @@ def _context(home_xg: float, away_xg: float) -> MatchContext:
         ),
         home_team=TeamInfo("home", "Home FC"),
         away_team=TeamInfo("away", "Away FC"),
-        model_outputs=(
-            ModelOutput("xg", "1.0.0", 0.55, 0.25, 0.20, home_xg, away_xg),
-        ),
+        model_outputs=(ModelOutput("xg", "1.0.0", 0.55, 0.25, 0.20, home_xg, away_xg),),
         decision=DecisionOutput(),
     )
 
