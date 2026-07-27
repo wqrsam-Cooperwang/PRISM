@@ -3,6 +3,7 @@
 from src.prediction.baselines import (
     EloProbabilityModel,
     MarketProbabilityModel,
+    TeamScoringRateExpectedGoalsModel,
     TeamStatisticsProbabilityModel,
 )
 from src.prediction.collection_path import (
@@ -24,6 +25,7 @@ __all__ = [
     "MarketProbabilityModel",
     "PredictionModel",
     "PredictionPathResult",
+    "TeamScoringRateExpectedGoalsModel",
     "TeamStatisticsProbabilityModel",
     "run_baseline_prediction_path",
     "run_collected_prediction_path",
