@@ -1,0 +1,42 @@
+{
+  "dataset_id": "screenshot-index-verified-outcomes-2026-07-v1",
+  "scope": "outcome_verification",
+  "notes": [
+    "These outcomes correspond to matches indexed from the user's screenshots.",
+    "They do not by themselves prove the screenshot score selections were PRISM model outputs.",
+    "Promotion into model-history requires a frozen/chat/Airtable prediction provenance match."
+  ],
+  "records": [
+    {"code":"MON-201","home":"TPS Turku","away":"Ilves","final_score":"1-3","verified":true},
+    {"code":"MON-202","home":"Mariehamn","away":"Lahti","final_score":"0-2","verified":true},
+    {"code":"MON-203","home":"Orgryte","away":"Djurgarden","final_score":"0-0","verified":true},
+    {"code":"MON-204","home":"Kalmar","away":"Malmo","final_score":"2-2","verified":true},
+    {"code":"TUE-205","home":"Sabah","away":"KuPS","final_score":"1-0","verified":true},
+    {"code":"TUE-206","home":"AGF Aarhus","away":"Lech Poznan","final_score":"1-4","verified":true,"event_note":"AGF red card at 37 minutes materially altered path"},
+    {"code":"TUE-207","home":"Sturm Graz","away":"Hearts","final_score":"4-0","verified":true},
+    {"code":"TUE-201","home":"Jeju SK","away":"Gangwon FC","final_score":"1-1","verified":true},
+    {"code":"TUE-202","home":"Jeonbuk Hyundai","away":"Daejeon Hana Citizen","final_score":"0-0","verified":true},
+    {"code":"TUE-203","home":"Ulsan HD","away":"Incheon United","final_score":"1-2","verified":true},
+    {"code":"WED-204","home":"Bodo/Glimt","away":"HamKam","final_score":"3-0","verified":true},
+    {"code":"WED-209","home":"Los Angeles FC","away":"Real Salt Lake","final_score":"3-1","verified":true},
+    {"code":"WED-210","home":"Omonia","away":"Kairat","final_score":"1-0","verified":true},
+    {"code":"THU-201","home":"Corinthians","away":"Remo","final_score":"3-0","verified":true},
+    {"code":"THU-203","home":"Hammarby","away":"Anderlecht","final_score":"1-1","verified":true},
+    {"code":"THU-204","home":"St Gallen","away":"Benfica","final_score":"2-1","verified":true},
+    {"code":"THU-205","home":"Besiktas","away":"Midtjylland","final_score":"1-0","verified":true,"event_note":"Midtjylland red card at 15 minutes"},
+    {"code":"THU-206","home":"Twente","away":"Ferencvaros","final_score":"1-2","verified":true},
+    {"code":"FRI-201","home":"Jaro","away":"SJK","final_score":"2-1","verified":true},
+    {"code":"FRI-202","home":"Vasteras SK","away":"Orgryte","final_score":"2-0","verified":true},
+    {"code":"SAT-201","home":"Gimcheon Sangmu","away":"Daejeon Hana Citizen","final_score":"3-2","verified":true},
+    {"code":"SAT-202","home":"Pohang Steelers","away":"Jeonbuk Hyundai","final_score":"0-2","verified":true},
+    {"code":"SAT-203","home":"Degerfors","away":"Djurgarden","final_score":"0-1","verified":true},
+    {"code":"SAT-204","home":"Mariehamn","away":"AC Oulu","final_score":"1-1","verified":true},
+    {"code":"SAT-205","home":"Kristiansund","away":"Start","final_score":"1-2","verified":true},
+    {"code":"SAT-206","home":"KuPS","away":"VPS","final_score":"3-1","verified":true},
+    {"code":"SAT-207","home":"Kalmar","away":"Mjallby","final_score":"2-1","verified":true},
+    {"code":"SUN-201-KOR","home":"FC Seoul","away":"Ulsan HD","final_score":"1-3","verified":true},
+    {"code":"SUN-202-KOR","home":"Incheon United","away":"Bucheon FC 1995","final_score":"1-1","verified":true},
+    {"code":"SUN-203-KOR","home":"Gwangju FC","away":"Jeju SK","final_score":"1-2","verified":true},
+    {"code":"SUN-204-KOR","home":"FC Anyang","away":"Gangwon FC","final_score":"2-1","verified":true}
+  ]
+}
