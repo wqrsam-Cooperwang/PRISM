@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from math import exp, isfinite, sqrt
+from math import exp, factorial, isfinite, sqrt
 
 from src.domain.models import ModelOutput
 from src.features.models import FeatureVector
@@ -14,6 +14,10 @@ def _finite_feature(features: FeatureVector, name: str) -> float:
     if not isfinite(value):
         raise ValueError(f"Feature {name} must be finite")
     return float(value)
+
+
+def _poisson(rate: float, goals: int) -> float:
+    return exp(-rate) * (rate**goals) / factorial(goals)
 
 
 @dataclass(frozen=True)
@@ -156,5 +160,64 @@ class TeamStatisticsProbabilityModel:
                 "home_advantage": self.home_advantage,
                 "draw_scale": self.draw_scale,
                 "composite_strength_difference": composite,
+            },
+        )
+
+
+@dataclass(frozen=True)
+class TeamScoringRateExpectedGoalsModel:
+    """Transparent xG baseline from observed scoring and conceding rates."""
+
+    model_id: str = "team_scoring_rate_xg"
+    version: str = "1.0.0"
+    required_features: tuple[str, ...] = (
+        "home_goals_for_per_game",
+        "home_goals_against_per_game",
+        "away_goals_for_per_game",
+        "away_goals_against_per_game",
+    )
+    max_goals: int = 10
+
+    def predict(self, features: FeatureVector) -> ModelOutput:
+        home_for = _finite_feature(features, "home_goals_for_per_game")
+        home_against = _finite_feature(features, "home_goals_against_per_game")
+        away_for = _finite_feature(features, "away_goals_for_per_game")
+        away_against = _finite_feature(features, "away_goals_against_per_game")
+        if min(home_for, home_against, away_for, away_against) < 0.0:
+            raise ValueError("scoring-rate features must be non-negative")
+
+        home_xg = max(0.05, (home_for + away_against) / 2.0)
+        away_xg = max(0.05, (away_for + home_against) / 2.0)
+        home_probability = 0.0
+        draw_probability = 0.0
+        away_probability = 0.0
+        for home_goals in range(self.max_goals + 1):
+            home_mass = _poisson(home_xg, home_goals)
+            for away_goals in range(self.max_goals + 1):
+                probability = home_mass * _poisson(away_xg, away_goals)
+                if home_goals > away_goals:
+                    home_probability += probability
+                elif home_goals < away_goals:
+                    away_probability += probability
+                else:
+                    draw_probability += probability
+        total = home_probability + draw_probability + away_probability
+        if total <= 0.0:
+            raise ValueError("expected-goals probability grid must have positive mass")
+
+        return ModelOutput(
+            model_id=self.model_id,
+            model_version=self.version,
+            home_probability=home_probability / total,
+            draw_probability=draw_probability / total,
+            away_probability=away_probability / total,
+            expected_home_goals=home_xg,
+            expected_away_goals=away_xg,
+            diagnostics={
+                "method": "scoring_conceding_rate_mean_poisson",
+                "home_goals_for_per_game": home_for,
+                "home_goals_against_per_game": home_against,
+                "away_goals_for_per_game": away_for,
+                "away_goals_against_per_game": away_against,
             },
         )
