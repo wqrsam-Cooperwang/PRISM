@@ -40,7 +40,8 @@ def conditional_tail_width(signals: DispersionSignals) -> DispersionDecision:
     Mutually contradictory low-event and directional-tail signals are damped before
     allocation. Conflict damping is share-aware: the weaker requested tail absorbs more
     of the penalty, preserving a clearly supported scenario while preventing simultaneous
-    saturation of incompatible tails.
+    saturation of incompatible tails. A conflict-dependent joint tail budget then
+    guarantees that contradictory scenarios retain governed baseline probability mass.
     """
 
     values = (
@@ -82,6 +83,13 @@ def conditional_tail_width(signals: DispersionSignals) -> DispersionDecision:
     dominant_tail_weight = _bounded_weight(
         requested_dominant_tail * dominant_tail_damping
     )
+
+    joint_tail_budget = 1.0 - 0.30 * scenario_conflict
+    allocated_tail = low_event_weight + dominant_tail_weight
+    if allocated_tail > joint_tail_budget:
+        budget_scale = joint_tail_budget / allocated_tail
+        low_event_weight *= budget_scale
+        dominant_tail_weight *= budget_scale
 
     return DispersionDecision(
         home_width=home_width,
