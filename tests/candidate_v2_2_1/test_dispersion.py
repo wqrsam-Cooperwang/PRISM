@@ -43,6 +43,31 @@ def test_information_uncertainty_widens_both_sides_and_adds_small_low_event_mass
     assert decision.dominant_tail_weight == 0.0
 
 
+def test_conflicting_low_event_and_dominance_signals_compete_for_tail_mass() -> None:
+    decision = conditional_tail_width(
+        DispersionSignals(low_event_risk=1.0, dominance_risk=1.0)
+    )
+
+    assert decision.home_width == pytest.approx(1.05)
+    assert decision.away_width == pytest.approx(0.95)
+    assert decision.low_event_weight == pytest.approx(0.2)
+    assert decision.dominant_tail_weight == pytest.approx(0.225)
+    assert decision.low_event_weight + decision.dominant_tail_weight < 0.5
+
+
+def test_conflict_damping_is_symmetric_between_tail_scenario_allocations() -> None:
+    low_event_only = conditional_tail_width(DispersionSignals(low_event_risk=1.0))
+    dominance_only = conditional_tail_width(DispersionSignals(dominance_risk=1.0))
+    conflicting = conditional_tail_width(
+        DispersionSignals(low_event_risk=1.0, dominance_risk=1.0)
+    )
+
+    assert conflicting.low_event_weight == pytest.approx(low_event_only.low_event_weight * 0.5)
+    assert conflicting.dominant_tail_weight == pytest.approx(
+        dominance_only.dominant_tail_weight * 0.5
+    )
+
+
 @pytest.mark.parametrize(
     "signals",
     (
