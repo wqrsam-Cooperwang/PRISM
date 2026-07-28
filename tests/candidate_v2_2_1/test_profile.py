@@ -52,6 +52,4 @@ def test_invalid_signals_fail_closed_at_profile_boundary() -> None:
         ValueError,
         match=r"dispersion signals must be finite values in \[0, 1\]",
     ):
-        build_candidate_dispersion_profile(
-            DispersionSignals(information_uncertainty=float("nan"))
-        )
+        build_candidate_dispersion_profile(DispersionSignals(information_uncertainty=float("nan")))
