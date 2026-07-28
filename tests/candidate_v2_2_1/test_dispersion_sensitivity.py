@@ -70,3 +70,25 @@ def test_conflict_damping_reduces_directional_overconfidence() -> None:
     assert conflicted.home_width < directional.home_width
     assert conflicted.away_width > directional.away_width
     assert conflicted.dominant_tail_weight < directional.dominant_tail_weight
+
+
+def test_share_aware_conflict_preserves_strong_low_event_signal() -> None:
+    low_event_only = conditional_tail_width(DispersionSignals(low_event_risk=1.0))
+    mostly_low_event = conditional_tail_width(
+        DispersionSignals(regime_break=0.2, low_event_risk=1.0, dominance_risk=0.2)
+    )
+
+    assert mostly_low_event.low_event_weight > mostly_low_event.dominant_tail_weight
+    assert mostly_low_event.low_event_weight > 0.95 * low_event_only.low_event_weight
+
+
+def test_share_aware_conflict_preserves_strong_dominant_tail_signal() -> None:
+    dominant_only = conditional_tail_width(
+        DispersionSignals(regime_break=1.0, dominance_risk=1.0)
+    )
+    mostly_dominant = conditional_tail_width(
+        DispersionSignals(regime_break=1.0, low_event_risk=0.2, dominance_risk=1.0)
+    )
+
+    assert mostly_dominant.dominant_tail_weight > mostly_dominant.low_event_weight
+    assert mostly_dominant.dominant_tail_weight > 0.95 * dominant_only.dominant_tail_weight

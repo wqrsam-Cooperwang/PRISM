@@ -38,8 +38,9 @@ def conditional_tail_width(signals: DispersionSignals) -> DispersionDecision:
     distribution width and explicit low-event / dominant-tail scenario weights.
 
     Mutually contradictory low-event and directional-tail signals are damped before
-    allocation. This preserves scenario separation instead of simultaneously saturating
-    incompatible tails and reducing the governed baseline to an uninformative residue.
+    allocation. Conflict damping is share-aware: the weaker requested tail absorbs more
+    of the penalty, preserving a clearly supported scenario while preventing simultaneous
+    saturation of incompatible tails.
     """
 
     values = (
@@ -58,17 +59,28 @@ def conditional_tail_width(signals: DispersionSignals) -> DispersionDecision:
 
     directional_signal = max(signals.regime_break, signals.dominance_risk)
     scenario_conflict = signals.low_event_risk * directional_signal
-    conflict_damping = 1.0 - 0.35 * scenario_conflict
+    width_conflict_damping = 1.0 - 0.35 * scenario_conflict
 
     home_delta = uncertainty + regime + dominance - 0.15 * signals.low_event_risk
     away_delta = uncertainty + 0.10 * signals.regime_break - 0.15 * signals.dominance_risk
-    home_width = _bounded(1.0 + home_delta * conflict_damping)
-    away_width = _bounded(1.0 + away_delta * conflict_damping)
-    low_event_weight = _bounded_weight(
-        (low_event + 0.10 * signals.information_uncertainty) * conflict_damping
-    )
+    home_width = _bounded(1.0 + home_delta * width_conflict_damping)
+    away_width = _bounded(1.0 + away_delta * width_conflict_damping)
+
+    requested_low_event = low_event + 0.10 * signals.information_uncertainty
+    requested_dominant_tail = dominance + 0.15 * signals.regime_break
+    requested_total = requested_low_event + requested_dominant_tail
+    if requested_total == 0.0:
+        low_event_share = 0.0
+        dominant_tail_share = 0.0
+    else:
+        low_event_share = requested_low_event / requested_total
+        dominant_tail_share = requested_dominant_tail / requested_total
+
+    low_event_damping = 1.0 - 0.35 * scenario_conflict * dominant_tail_share
+    dominant_tail_damping = 1.0 - 0.35 * scenario_conflict * low_event_share
+    low_event_weight = _bounded_weight(requested_low_event * low_event_damping)
     dominant_tail_weight = _bounded_weight(
-        (dominance + 0.15 * signals.regime_break) * conflict_damping
+        requested_dominant_tail * dominant_tail_damping
     )
 
     return DispersionDecision(
