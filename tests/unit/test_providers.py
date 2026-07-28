@@ -18,6 +18,7 @@ def test_providers_basic() -> None:
     now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     match_context = {
         "match_id": "M-1",
+        "observation_time": now,
         "confirmed_players": ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9", "p10", "p11"],
         "expected_players": ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9", "p10", "p11"],
         "player_quality": {"p1": 0.9, "p2": 0.85},
@@ -57,3 +58,22 @@ def test_providers_basic() -> None:
             assert 0.0 <= e.reliability <= 1.0
             for v in e.variance.values():
                 assert v >= 0.0
+
+
+def test_providers_missing_observation_time() -> None:
+    match_context = {"match_id": "M-1"}
+    engines = [
+        PersonnelReliabilityEngine(),
+        HomeAwayRegimeEngine(),
+        RotationDepthEngine(),
+        PriorityEngine(),
+        GoalStateStrategyEngine(),
+        MarketGovernanceEngine(),
+        ScenarioProbabilityEngine(),
+    ]
+    for engine in engines:
+        try:
+            engine.produce_evidence(match_context)
+            assert False, "Expected ValueError for missing observation_time"
+        except ValueError:
+            pass
