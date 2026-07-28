@@ -1,31 +1,54 @@
 """Prediction archive: durable, append-only projection of production predictions.
 
-This module follows existing ledger patterns (models + filesystem stores) and
-provides a small builder to create archive records from a previously-built
-PredictionLedgerSnapshot. The archive record intentionally duplicates only the
-fields required for downstream reporting/analytics and keeps the full immutable
-snapshot in the performance-ledger.
+Design notes:
+- Generic archive record independent of any particular snapshot structure. Use
+  from_dict/from_mapping builders to adapt inputs from various engines.
+- Enforce UTC timezone for all timestamps; reject naive datetimes.
+- Include schema_version for future migrations.
+- Persist only references for large objects (feature_snapshot_ref).
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 from pathlib import Path
 from typing import Any, Mapping
 
+ARCHIVE_SCHEMA_VERSION = "1.0.0"
+
+
+def _ensure_utc(dt: datetime) -> datetime:
+    if dt.tzinfo is None or dt.utcoffset() is None:
+        raise ValueError("datetime must be timezone-aware (UTC required)")
+    return dt.astimezone(timezone.utc)
+
+
+def _isoformat_utc(dt: datetime) -> str:
+    # produce a compact ISO 8601 with Z for UTC
+    return _ensure_utc(dt).isoformat().replace("+00:00", "Z")
+
+
+def _parse_iso_to_utc(value: str) -> datetime:
+    # Accept ISO strings with Z or offset; normalize to UTC
+    if value.endswith("Z"):
+        value = value[:-1] + "+00:00"
+    return _ensure_utc(datetime.fromisoformat(value))
+
 
 @dataclass(frozen=True)
 class PredictionArchiveRecord:
+    schema_version: str
     prediction_id: str
     match_id: str
     competition: str
-    kickoff: datetime
+    season: str
+    kickoff_time: datetime
+    prediction_timestamp: datetime
     home_team: str
     away_team: str
     model_version: str
-    prediction_timestamp: datetime
     expected_home_goals: float
     expected_away_goals: float
     home_probability: float
@@ -36,7 +59,8 @@ class PredictionArchiveRecord:
     feature_snapshot_ref: str
 
     def __post_init__(self) -> None:
-        # Basic validations mirroring ledger/outcomes style
+        if self.schema_version != ARCHIVE_SCHEMA_VERSION:
+            raise ValueError(f"unsupported schema_version: {self.schema_version}")
         if not self.prediction_id.strip():
             raise ValueError("prediction_id must not be blank")
         if not self.match_id.strip():
@@ -45,11 +69,18 @@ class PredictionArchiveRecord:
             raise ValueError("competition must not be blank")
         if not self.home_team.strip() or not self.away_team.strip():
             raise ValueError("team names must not be blank")
-        if self.kickoff.tzinfo is None or self.kickoff.utcoffset() is None:
-            raise ValueError("kickoff must be timezone-aware")
-        if self.prediction_timestamp.tzinfo is None or self.prediction_timestamp.utcoffset() is None:
-            raise ValueError("prediction_timestamp must be timezone-aware")
-        for value in (self.expected_home_goals, self.expected_away_goals, self.home_probability, self.draw_probability, self.away_probability, self.confidence):
+        # Ensure timezone-aware and normalized to UTC
+        _ensure_utc(self.kickoff_time)
+        _ensure_utc(self.prediction_timestamp)
+        # Numeric validations
+        for value in (
+            self.expected_home_goals,
+            self.expected_away_goals,
+            self.home_probability,
+            self.draw_probability,
+            self.away_probability,
+            self.confidence,
+        ):
             if not isinstance(value, (int, float)):
                 raise ValueError("numeric fields must be int/float")
         for prob in (self.home_probability, self.draw_probability, self.away_probability, self.confidence):
@@ -67,31 +98,61 @@ class PredictionArchiveRecord:
 
     def to_dict(self) -> dict[str, Any]:
         return {
+            "schema_version": self.schema_version,
             "prediction_id": self.prediction_id,
             "match_id": self.match_id,
             "competition": self.competition,
-            "kickoff": self.kickoff.isoformat(),
+            "season": self.season,
+            "kickoff_time": _isoformat_utc(self.kickoff_time),
+            "prediction_timestamp": _isoformat_utc(self.prediction_timestamp),
             "home_team": self.home_team,
             "away_team": self.away_team,
             "model_version": self.model_version,
-            "prediction_timestamp": self.prediction_timestamp.isoformat(),
-            "expected_home_goals": self.expected_home_goals,
-            "expected_away_goals": self.expected_away_goals,
-            "home_probability": self.home_probability,
-            "draw_probability": self.draw_probability,
-            "away_probability": self.away_probability,
+            "expected_home_goals": float(self.expected_home_goals),
+            "expected_away_goals": float(self.expected_away_goals),
+            "home_probability": float(self.home_probability),
+            "draw_probability": float(self.draw_probability),
+            "away_probability": float(self.away_probability),
             "exact_score_probabilities": dict(self.exact_score_probabilities),
-            "confidence": self.confidence,
+            "confidence": float(self.confidence),
             "feature_snapshot_ref": self.feature_snapshot_ref,
         }
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, Any]) -> "PredictionArchiveRecord":
+        schema = data.get("schema_version")
+        if schema != ARCHIVE_SCHEMA_VERSION:
+            raise ValueError(f"unsupported schema_version: {schema}")
+        kickoff_raw = data.get("kickoff_time")
+        pred_ts_raw = data.get("prediction_timestamp")
+        kickoff = _parse_iso_to_utc(kickoff_raw) if isinstance(kickoff_raw, str) else _ensure_utc(kickoff_raw)
+        pred_ts = _parse_iso_to_utc(pred_ts_raw) if isinstance(pred_ts_raw, str) else _ensure_utc(pred_ts_raw)
+        return cls(
+            schema_version=schema,
+            prediction_id=str(data.get("prediction_id", "")),
+            match_id=str(data.get("match_id", "")),
+            competition=str(data.get("competition", "")),
+            season=str(data.get("season", "")),
+            kickoff_time=kickoff,
+            prediction_timestamp=pred_ts,
+            home_team=str(data.get("home_team", "")),
+            away_team=str(data.get("away_team", "")),
+            model_version=str(data.get("model_version", "")),
+            expected_home_goals=float(data.get("expected_home_goals", 0.0)),
+            expected_away_goals=float(data.get("expected_away_goals", 0.0)),
+            home_probability=float(data.get("home_probability", 0.0)),
+            draw_probability=float(data.get("draw_probability", 0.0)),
+            away_probability=float(data.get("away_probability", 0.0)),
+            exact_score_probabilities=dict(data.get("exact_score_probabilities", {})),
+            confidence=float(data.get("confidence", 0.0)),
+            feature_snapshot_ref=str(data.get("feature_snapshot_ref", "")),
+        )
 
 
 class FileSystemPredictionArchiveStore:
     """Persist one immutable prediction archive record under a deterministic root.
 
-    Behavior mirrors other filesystem ledger stores in the repository: create
-    directory if needed, write to a temporary file, then atomically replace to
-    the final JSON file. Existing records are protected (FileExistsError).
+    Uses atomic write semantics and prevents duplicate entries.
     """
 
     def __init__(self, root: Path | str = "data/prediction-archive") -> None:
@@ -109,64 +170,64 @@ class FileSystemPredictionArchiveStore:
         return destination
 
 
-# Helper to project the existing PredictionLedgerSnapshot payload into the archive record
-def build_archive_from_snapshot(snapshot: Any) -> PredictionArchiveRecord:
-    """Create a PredictionArchiveRecord from a PredictionLedgerSnapshot-like object.
+def build_archive_from_mapping(mapping: Mapping[str, Any]) -> PredictionArchiveRecord:
+    """Build a PredictionArchiveRecord from a flexible mapping.
 
-    The function expects the snapshot.payload to contain a report (report.to_dict())
-    and features/model_outputs or report.scoreline. It prefers the report's
-    consensus and scoreline where available, and falls back to the first
-    model_output entry for expected goals/probabilities.
+    This helper is intentionally generic: it accepts a mapping produced by any
+    prediction engine or snapshot builder, attempting to extract well-known
+    fields. It does not require a PredictionLedgerSnapshot instance.
     """
-    payload = snapshot.payload
-    report = payload.get("report", {})
-    match = report.get("match", {})
-    provenance = report.get("provenance", {})
-    consensus = report.get("consensus") or {}
-    scoreline = report.get("scoreline") or {}
+    # Direct expected fields if available
+    schema = mapping.get("schema_version", ARCHIVE_SCHEMA_VERSION)
+    prediction_id = mapping.get("prediction_id") or mapping.get("prediction_id") or ""
+    match_id = mapping.get("match_id") or mapping.get("match", {}).get("match_id", "")
+    competition = mapping.get("competition") or mapping.get("match", {}).get("competition", "")
+    season = mapping.get("season") or mapping.get("match", {}).get("season", "")
+    kickoff_raw = mapping.get("kickoff_time") or mapping.get("match", {}).get("kickoff")
+    prediction_ts_raw = mapping.get("prediction_timestamp") or mapping.get("frozen_at")
+    home_team = mapping.get("home_team") or mapping.get("match", {}).get("home_team", "")
+    away_team = mapping.get("away_team") or mapping.get("match", {}).get("away_team", "")
+    model_version = mapping.get("model_version") or mapping.get("provenance", {}).get("model_version", "")
 
-    # Primary extraction points
-    home_prob = consensus.get("home_probability")
-    draw_prob = consensus.get("draw_probability")
-    away_prob = consensus.get("away_probability")
+    # Outputs
+    expected_home = mapping.get("expected_home_goals")
+    expected_away = mapping.get("expected_away_goals")
+    home_prob = mapping.get("home_probability")
+    draw_prob = mapping.get("draw_probability")
+    away_prob = mapping.get("away_probability")
+    exact_scores = mapping.get("exact_score_probabilities") or mapping.get("shadow_predictions", {}).get("exact_score_probabilities") or {}
+    confidence = mapping.get("confidence") or (mapping.get("report", {}).get("confidence", {}).get("overall") if mapping.get("report") else None)
+    feature_ref = mapping.get("feature_snapshot_ref") or mapping.get("features", {}).get("fingerprint") or mapping.get("features", {}).get("intelligence_fingerprint") or ""
 
-    expected_home = scoreline.get("expected_home_goals")
-    expected_away = scoreline.get("expected_away_goals")
+    # Normalize timestamps
+    kickoff = _parse_iso_to_utc(kickoff_raw) if isinstance(kickoff_raw, str) else _ensure_utc(kickoff_raw) if kickoff_raw is not None else _ensure_utc(datetime.now(timezone.utc))
+    pred_ts = _parse_iso_to_utc(prediction_ts_raw) if isinstance(prediction_ts_raw, str) else _ensure_utc(prediction_ts_raw) if prediction_ts_raw is not None else _ensure_utc(datetime.now(timezone.utc))
 
-    # fallbacks to model_outputs if primary absent
-    if (home_prob is None or draw_prob is None or away_prob is None) and payload.get("model_outputs"):
-        first = payload.get("model_outputs")[0]
-        home_prob = home_prob if home_prob is not None else first.get("home_probability")
-        draw_prob = draw_prob if draw_prob is not None else first.get("draw_probability")
-        away_prob = away_prob if away_prob is not None else first.get("away_probability")
-        expected_home = expected_home if expected_home is not None else first.get("expected_home_goals")
-        expected_away = expected_away if expected_away is not None else first.get("expected_away_goals")
-
-    # exact score probabilities may be in shadow_predictions or scoreline recommended list.
-    exact_probs = payload.get("shadow_predictions", {}).get("exact_score_probabilities") or {}
-    # confidence from report
-    confidence = None
-    if report.get("confidence"):
-        confidence = report["confidence"].get("overall")
-
-    # features fingerprint or reference
-    feature_ref = payload.get("features", {}).get("fingerprint") or payload.get("features", {}).get("intelligence_fingerprint") or ""
+    # Fallbacks for outputs if missing
+    expected_home = float(expected_home) if expected_home is not None else float(mapping.get("scoreline", {}).get("expected_home_goals", 0.0))
+    expected_away = float(expected_away) if expected_away is not None else float(mapping.get("scoreline", {}).get("expected_away_goals", 0.0))
+    home_prob = float(home_prob) if home_prob is not None else float(mapping.get("consensus", {}).get("home_probability", 0.0))
+    draw_prob = float(draw_prob) if draw_prob is not None else float(mapping.get("consensus", {}).get("draw_probability", 0.0))
+    away_prob = float(away_prob) if away_prob is not None else float(mapping.get("consensus", {}).get("away_probability", 0.0))
+    confidence = float(confidence) if confidence is not None else 0.0
 
     return PredictionArchiveRecord(
-        prediction_id=snapshot.prediction_id,
-        match_id=snapshot.match_id,
-        competition=match.get("competition", ""),
-        kickoff=datetime.fromisoformat(match.get("kickoff")) if isinstance(match.get("kickoff"), str) else match.get("kickoff"),
-        home_team=match.get("home_team", ""),
-        away_team=match.get("away_team", ""),
-        model_version=provenance.get("model_version", ""),
-        prediction_timestamp=datetime.fromisoformat(snapshot.frozen_at.isoformat()),
-        expected_home_goals=float(expected_home) if expected_home is not None else 0.0,
-        expected_away_goals=float(expected_away) if expected_away is not None else 0.0,
-        home_probability=float(home_prob) if home_prob is not None else 0.0,
-        draw_probability=float(draw_prob) if draw_prob is not None else 0.0,
-        away_probability=float(away_prob) if away_prob is not None else 0.0,
-        exact_score_probabilities=dict(exact_probs),
-        confidence=float(confidence) if confidence is not None else 0.0,
+        schema_version=schema,
+        prediction_id=str(prediction_id),
+        match_id=str(match_id),
+        competition=str(competition),
+        season=str(season),
+        kickoff_time=kickoff,
+        prediction_timestamp=pred_ts,
+        home_team=str(home_team),
+        away_team=str(away_team),
+        model_version=str(model_version),
+        expected_home_goals=float(expected_home),
+        expected_away_goals=float(expected_away),
+        home_probability=float(home_prob),
+        draw_probability=float(draw_prob),
+        away_probability=float(away_prob),
+        exact_score_probabilities=dict(exact_scores),
+        confidence=float(confidence),
         feature_snapshot_ref=str(feature_ref),
     )
