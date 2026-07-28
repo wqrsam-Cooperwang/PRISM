@@ -34,7 +34,11 @@ def build_candidate_dispersion_profile(
 
     decision = conditional_tail_width(signals)
     mixture = build_scenario_mixture(decision)
-    total_weight = mixture.baseline_weight + mixture.low_event_weight + mixture.dominant_tail_weight
+    total_weight = (
+        mixture.baseline_weight
+        + mixture.low_event_weight
+        + mixture.dominant_tail_weight
+    )
     if abs(total_weight - 1.0) > 1e-12:
         raise ValueError("scenario mixture weights must sum to 1")
     if mixture.baseline_weight < 0.0:
