@@ -36,6 +36,10 @@ def conditional_tail_width(signals: DispersionSignals) -> DispersionDecision:
 
     The function does not alter mean goal expectations. It only controls candidate
     distribution width and explicit low-event / dominant-tail scenario weights.
+
+    Mutually contradictory low-event and directional-tail signals are damped before
+    allocation. This preserves scenario separation instead of simultaneously saturating
+    incompatible tails and reducing the governed baseline to an uninformative residue.
     """
 
     values = (
@@ -52,12 +56,20 @@ def conditional_tail_width(signals: DispersionSignals) -> DispersionDecision:
     dominance = 0.45 * signals.dominance_risk
     low_event = 0.40 * signals.low_event_risk
 
-    home_width = _bounded(1.0 + uncertainty + regime + dominance - 0.15 * signals.low_event_risk)
-    away_width = _bounded(
-        1.0 + uncertainty + 0.10 * signals.regime_break - 0.15 * signals.dominance_risk
+    directional_signal = max(signals.regime_break, signals.dominance_risk)
+    scenario_conflict = signals.low_event_risk * directional_signal
+    conflict_damping = 1.0 - 0.35 * scenario_conflict
+
+    home_delta = uncertainty + regime + dominance - 0.15 * signals.low_event_risk
+    away_delta = uncertainty + 0.10 * signals.regime_break - 0.15 * signals.dominance_risk
+    home_width = _bounded(1.0 + home_delta * conflict_damping)
+    away_width = _bounded(1.0 + away_delta * conflict_damping)
+    low_event_weight = _bounded_weight(
+        (low_event + 0.10 * signals.information_uncertainty) * conflict_damping
     )
-    low_event_weight = _bounded_weight(low_event + 0.10 * signals.information_uncertainty)
-    dominant_tail_weight = _bounded_weight(dominance + 0.15 * signals.regime_break)
+    dominant_tail_weight = _bounded_weight(
+        (dominance + 0.15 * signals.regime_break) * conflict_damping
+    )
 
     return DispersionDecision(
         home_width=home_width,
