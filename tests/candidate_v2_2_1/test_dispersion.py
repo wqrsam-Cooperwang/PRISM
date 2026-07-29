@@ -34,12 +34,12 @@ def test_low_event_risk_adds_explicit_low_event_mass_and_narrows_home_width() ->
     assert decision.dominant_tail_weight == 0.0
 
 
-def test_information_uncertainty_widens_both_sides_and_adds_small_low_event_mass() -> None:
+def test_information_uncertainty_widens_both_sides_without_scenario_mass() -> None:
     decision = conditional_tail_width(DispersionSignals(information_uncertainty=1.0))
 
     assert decision.home_width == pytest.approx(1.3)
     assert decision.away_width == pytest.approx(1.3)
-    assert decision.low_event_weight == pytest.approx(0.1)
+    assert decision.low_event_weight == 0.0
     assert decision.dominant_tail_weight == 0.0
 
 
