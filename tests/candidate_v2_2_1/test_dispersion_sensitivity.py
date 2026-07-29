@@ -21,13 +21,36 @@ def test_low_event_risk_monotonically_increases_low_event_mass() -> None:
     assert high.home_width < low.home_width
 
 
-def test_information_uncertainty_widens_both_distributions_without_dominant_tail() -> None:
+def test_information_uncertainty_widens_both_distributions_without_scenario_mass() -> None:
     baseline = conditional_tail_width(DispersionSignals())
     uncertain = conditional_tail_width(DispersionSignals(information_uncertainty=0.8))
 
     assert uncertain.home_width > baseline.home_width
     assert uncertain.away_width > baseline.away_width
+    assert uncertain.low_event_weight == 0.0
     assert uncertain.dominant_tail_weight == 0.0
+
+
+def test_uncertainty_does_not_bias_governed_scenario_allocation() -> None:
+    low_event = conditional_tail_width(DispersionSignals(low_event_risk=0.7))
+    low_event_uncertain = conditional_tail_width(
+        DispersionSignals(low_event_risk=0.7, information_uncertainty=1.0)
+    )
+    dominant = conditional_tail_width(
+        DispersionSignals(regime_break=0.6, dominance_risk=0.8)
+    )
+    dominant_uncertain = conditional_tail_width(
+        DispersionSignals(
+            regime_break=0.6,
+            dominance_risk=0.8,
+            information_uncertainty=1.0,
+        )
+    )
+
+    assert low_event_uncertain.low_event_weight == low_event.low_event_weight
+    assert low_event_uncertain.dominant_tail_weight == low_event.dominant_tail_weight
+    assert dominant_uncertain.low_event_weight == dominant.low_event_weight
+    assert dominant_uncertain.dominant_tail_weight == dominant.dominant_tail_weight
 
 
 def test_dominance_signal_is_asymmetric_by_design() -> None:

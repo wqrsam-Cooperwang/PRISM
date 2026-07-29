@@ -37,6 +37,10 @@ def conditional_tail_width(signals: DispersionSignals) -> DispersionDecision:
     The function does not alter mean goal expectations. It only controls candidate
     distribution width and explicit low-event / dominant-tail scenario weights.
 
+    Information uncertainty is deliberately non-directional: it widens both score
+    distributions but cannot create low-event or dominant-tail scenario mass by itself.
+    Scenario weights require scenario-specific governed evidence.
+
     Mutually contradictory low-event and directional-tail signals are damped before
     allocation. Conflict damping is share-aware: the weaker requested tail absorbs more
     of the penalty, preserving a clearly supported scenario while preventing simultaneous
@@ -67,7 +71,7 @@ def conditional_tail_width(signals: DispersionSignals) -> DispersionDecision:
     home_width = _bounded(1.0 + home_delta * width_conflict_damping)
     away_width = _bounded(1.0 + away_delta * width_conflict_damping)
 
-    requested_low_event = low_event + 0.10 * signals.information_uncertainty
+    requested_low_event = low_event
     requested_dominant_tail = dominance + 0.15 * signals.regime_break
     requested_total = requested_low_event + requested_dominant_tail
     if requested_total == 0.0:
