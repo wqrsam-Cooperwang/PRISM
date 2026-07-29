@@ -25,11 +25,11 @@ def test_regime_and_dominance_widen_home_tail_without_mutating_away_equally() ->
     assert decision.low_event_weight == 0.0
 
 
-def test_low_event_risk_adds_explicit_low_event_mass_and_narrows_home_width() -> None:
+def test_low_event_risk_adds_explicit_mass_and_narrows_both_widths() -> None:
     decision = conditional_tail_width(DispersionSignals(low_event_risk=1.0))
 
     assert decision.home_width == pytest.approx(0.85)
-    assert decision.away_width == pytest.approx(1.0)
+    assert decision.away_width == pytest.approx(0.9)
     assert decision.low_event_weight == pytest.approx(0.4)
     assert decision.dominant_tail_weight == 0.0
 
@@ -70,6 +70,18 @@ def test_subthreshold_evidence_can_adjust_width_without_creating_scenario_mass()
     assert decision.away_width > 1.0
     assert decision.low_event_weight == 0.0
     assert decision.dominant_tail_weight == 0.0
+
+
+def test_directional_evidence_quadratically_releases_away_low_event_narrowing() -> None:
+    weak_directional = conditional_tail_width(
+        DispersionSignals(low_event_risk=0.8, dominance_risk=0.2)
+    )
+    strong_directional = conditional_tail_width(
+        DispersionSignals(low_event_risk=0.8, dominance_risk=0.8)
+    )
+
+    assert weak_directional.away_width < 1.0
+    assert strong_directional.away_width >= 1.0
 
 
 def test_conflicting_scenarios_redistribute_disagreement_into_symmetric_width() -> None:

@@ -13,6 +13,7 @@ from math import isfinite
 
 _SCENARIO_ACTIVATION_FLOOR = 0.15
 _CONFLICT_UNCERTAINTY_WEIGHT = 0.20
+_AWAY_LOW_EVENT_NARROWING = 0.10
 
 
 @dataclass(frozen=True)
@@ -58,6 +59,11 @@ def conditional_tail_width(signals: DispersionSignals) -> DispersionDecision:
     Contradictory evidence also creates epistemic uncertainty. That uncertainty is
     redistributed symmetrically into both widths before directional conflict damping, so
     a low-event-versus-dominance disagreement cannot make either side spuriously narrow.
+
+    Low-event evidence narrows both score distributions when no directional scenario is
+    supported. The away-side narrowing decays quadratically as directional evidence rises,
+    preventing low-event suppression from erasing a governed regime-break or dominant-tail
+    pathway while retaining a conservative low-event response under weak directionality.
     """
 
     values = (
@@ -77,6 +83,11 @@ def conditional_tail_width(signals: DispersionSignals) -> DispersionDecision:
     scenario_conflict = signals.low_event_risk * directional_signal
     conflict_uncertainty = _CONFLICT_UNCERTAINTY_WEIGHT * scenario_conflict
     width_conflict_damping = 1.0 - 0.35 * scenario_conflict
+    away_low_event_narrowing = (
+        _AWAY_LOW_EVENT_NARROWING
+        * signals.low_event_risk
+        * (1.0 - directional_signal) ** 2
+    )
 
     home_delta = (
         uncertainty
@@ -90,6 +101,7 @@ def conditional_tail_width(signals: DispersionSignals) -> DispersionDecision:
         + conflict_uncertainty
         + 0.10 * signals.regime_break
         - 0.15 * signals.dominance_risk
+        - away_low_event_narrowing
     )
     home_width = _bounded(1.0 + home_delta * width_conflict_damping)
     away_width = _bounded(1.0 + away_delta * width_conflict_damping)
