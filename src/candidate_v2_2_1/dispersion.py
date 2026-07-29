@@ -12,6 +12,7 @@ from math import isfinite
 
 
 _SCENARIO_ACTIVATION_FLOOR = 0.15
+_CONFLICT_UNCERTAINTY_WEIGHT = 0.20
 
 
 @dataclass(frozen=True)
@@ -53,6 +54,10 @@ def conditional_tail_width(signals: DispersionSignals) -> DispersionDecision:
     of the penalty, preserving a clearly supported scenario while preventing simultaneous
     saturation of incompatible tails. A conflict-dependent joint tail budget then
     guarantees that contradictory scenarios retain governed baseline probability mass.
+
+    Contradictory evidence also creates epistemic uncertainty. That uncertainty is
+    redistributed symmetrically into both widths before directional conflict damping, so
+    a low-event-versus-dominance disagreement cannot make either side spuriously narrow.
     """
 
     values = (
@@ -70,10 +75,22 @@ def conditional_tail_width(signals: DispersionSignals) -> DispersionDecision:
 
     directional_signal = max(signals.regime_break, signals.dominance_risk)
     scenario_conflict = signals.low_event_risk * directional_signal
+    conflict_uncertainty = _CONFLICT_UNCERTAINTY_WEIGHT * scenario_conflict
     width_conflict_damping = 1.0 - 0.35 * scenario_conflict
 
-    home_delta = uncertainty + regime + dominance - 0.15 * signals.low_event_risk
-    away_delta = uncertainty + 0.10 * signals.regime_break - 0.15 * signals.dominance_risk
+    home_delta = (
+        uncertainty
+        + conflict_uncertainty
+        + regime
+        + dominance
+        - 0.15 * signals.low_event_risk
+    )
+    away_delta = (
+        uncertainty
+        + conflict_uncertainty
+        + 0.10 * signals.regime_break
+        - 0.15 * signals.dominance_risk
+    )
     home_width = _bounded(1.0 + home_delta * width_conflict_damping)
     away_width = _bounded(1.0 + away_delta * width_conflict_damping)
 
