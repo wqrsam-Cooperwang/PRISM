@@ -46,6 +46,35 @@ def test_information_uncertainty_widens_both_sides_without_scenario_mass() -> No
 @pytest.mark.parametrize(
     "signals",
     (
+        DispersionSignals(low_event_risk=0.05),
+        DispersionSignals(low_event_risk=0.15),
+        DispersionSignals(regime_break=0.15),
+        DispersionSignals(dominance_risk=0.15),
+    ),
+)
+def test_subthreshold_scenario_evidence_cannot_allocate_tail_mass(
+    signals: DispersionSignals,
+) -> None:
+    decision = conditional_tail_width(signals)
+
+    assert decision.low_event_weight == 0.0
+    assert decision.dominant_tail_weight == 0.0
+
+
+def test_subthreshold_evidence_can_adjust_width_without_creating_scenario_mass() -> None:
+    decision = conditional_tail_width(
+        DispersionSignals(low_event_risk=0.15, information_uncertainty=0.4)
+    )
+
+    assert decision.home_width != 1.0
+    assert decision.away_width > 1.0
+    assert decision.low_event_weight == 0.0
+    assert decision.dominant_tail_weight == 0.0
+
+
+@pytest.mark.parametrize(
+    "signals",
+    (
         DispersionSignals(regime_break=-0.01),
         DispersionSignals(low_event_risk=1.01),
         DispersionSignals(dominance_risk=float("nan")),

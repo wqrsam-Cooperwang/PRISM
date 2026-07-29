@@ -11,6 +11,9 @@ from dataclasses import dataclass
 from math import isfinite
 
 
+_SCENARIO_ACTIVATION_FLOOR = 0.15
+
+
 @dataclass(frozen=True)
 class DispersionSignals:
     """Governed inputs that may widen or narrow candidate scoreline tails."""
@@ -41,6 +44,10 @@ def conditional_tail_width(signals: DispersionSignals) -> DispersionDecision:
     distributions but cannot create low-event or dominant-tail scenario mass by itself.
     Scenario weights require scenario-specific governed evidence.
 
+    Sub-threshold scenario evidence may still adjust distribution width, but it cannot
+    allocate explicit scenario mass. Above the activation floor, smoothstep activation
+    avoids a discontinuous jump while ensuring weak evidence cannot create brittle tails.
+
     Mutually contradictory low-event and directional-tail signals are damped before
     allocation. Conflict damping is share-aware: the weaker requested tail absorbs more
     of the penalty, preserving a clearly supported scenario while preventing simultaneous
@@ -60,7 +67,6 @@ def conditional_tail_width(signals: DispersionSignals) -> DispersionDecision:
     uncertainty = 0.30 * signals.information_uncertainty
     regime = 0.35 * signals.regime_break
     dominance = 0.45 * signals.dominance_risk
-    low_event = 0.40 * signals.low_event_risk
 
     directional_signal = max(signals.regime_break, signals.dominance_risk)
     scenario_conflict = signals.low_event_risk * directional_signal
@@ -71,8 +77,13 @@ def conditional_tail_width(signals: DispersionSignals) -> DispersionDecision:
     home_width = _bounded(1.0 + home_delta * width_conflict_damping)
     away_width = _bounded(1.0 + away_delta * width_conflict_damping)
 
-    requested_low_event = low_event
-    requested_dominant_tail = dominance + 0.15 * signals.regime_break
+    activated_low_event = _scenario_activation(signals.low_event_risk)
+    activated_regime = _scenario_activation(signals.regime_break)
+    activated_dominance = _scenario_activation(signals.dominance_risk)
+    requested_low_event = 0.40 * activated_low_event
+    requested_dominant_tail = (
+        0.45 * activated_dominance + 0.15 * activated_regime
+    )
     requested_total = requested_low_event + requested_dominant_tail
     if requested_total == 0.0:
         low_event_share = 0.0
@@ -101,6 +112,15 @@ def conditional_tail_width(signals: DispersionSignals) -> DispersionDecision:
         low_event_weight=low_event_weight,
         dominant_tail_weight=dominant_tail_weight,
     )
+
+
+def _scenario_activation(value: float) -> float:
+    if value <= _SCENARIO_ACTIVATION_FLOOR:
+        return 0.0
+    scaled = (value - _SCENARIO_ACTIVATION_FLOOR) / (
+        1.0 - _SCENARIO_ACTIVATION_FLOOR
+    )
+    return scaled * scaled * (3.0 - 2.0 * scaled)
 
 
 def _bounded(value: float) -> float:
