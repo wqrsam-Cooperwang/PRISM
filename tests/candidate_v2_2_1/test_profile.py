@@ -20,14 +20,42 @@ def test_neutral_profile_preserves_baseline_only_mixture() -> None:
     assert profile.mixture.dominant_tail_weight == 0.0
 
 
-def test_low_event_profile_shifts_mass_without_mutating_width_contract() -> None:
+def test_low_event_profile_shifts_mass_and_narrows_both_widths() -> None:
     profile = build_candidate_dispersion_profile(DispersionSignals(low_event_risk=1.0))
 
     assert profile.decision.home_width == pytest.approx(0.85)
-    assert profile.decision.away_width == pytest.approx(1.0)
+    assert profile.decision.away_width == pytest.approx(0.9)
     assert profile.mixture.low_event_weight == pytest.approx(0.4)
     assert profile.mixture.dominant_tail_weight == 0.0
     assert profile.mixture.baseline_weight == pytest.approx(0.6)
+
+
+def test_directional_evidence_releases_away_narrowing_without_ungoverning_mass() -> None:
+    weak_directional = build_candidate_dispersion_profile(
+        DispersionSignals(low_event_risk=0.8, dominance_risk=0.2)
+    )
+    strong_directional = build_candidate_dispersion_profile(
+        DispersionSignals(low_event_risk=0.8, dominance_risk=0.8)
+    )
+
+    assert weak_directional.decision.away_width < 1.0
+    assert strong_directional.decision.away_width >= 1.0
+    assert weak_directional.mixture.low_event_weight > 0.0
+    assert strong_directional.mixture.low_event_weight > 0.0
+    assert weak_directional.mixture.dominant_tail_weight > 0.0
+    assert strong_directional.mixture.dominant_tail_weight > 0.0
+    assert (
+        weak_directional.mixture.baseline_weight
+        + weak_directional.mixture.low_event_weight
+        + weak_directional.mixture.dominant_tail_weight
+        == pytest.approx(1.0)
+    )
+    assert (
+        strong_directional.mixture.baseline_weight
+        + strong_directional.mixture.low_event_weight
+        + strong_directional.mixture.dominant_tail_weight
+        == pytest.approx(1.0)
+    )
 
 
 def test_dominant_profile_preserves_normalized_candidate_mixture() -> None:
