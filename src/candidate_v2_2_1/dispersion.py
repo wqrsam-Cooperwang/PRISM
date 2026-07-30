@@ -24,6 +24,7 @@ class DispersionSignals:
     low_event_risk: float = 0.0
     dominance_risk: float = 0.0
     information_uncertainty: float = 0.0
+    directional_evidence_overlap: float = 0.0
 
 
 @dataclass(frozen=True)
@@ -67,9 +68,10 @@ def conditional_tail_width(signals: DispersionSignals) -> DispersionDecision:
     directionality.
 
     Regime-break and dominance evidence are combined as a bounded probabilistic union.
-    This preserves either signal in isolation while allowing two independent moderate
-    signals to provide stronger directional support than either one alone. It also avoids
-    the information loss of a max-only aggregator without allowing support above one.
+    A governed overlap signal discounts only the incremental union gain when both inputs
+    may derive from shared evidence. Zero overlap retains the independent-evidence union;
+    full overlap falls back to the stronger signal. This prevents double counting while
+    preserving either signal in isolation.
     """
 
     values = (
@@ -77,6 +79,7 @@ def conditional_tail_width(signals: DispersionSignals) -> DispersionDecision:
         signals.low_event_risk,
         signals.dominance_risk,
         signals.information_uncertainty,
+        signals.directional_evidence_overlap,
     )
     if any(not isfinite(value) or value < 0.0 or value > 1.0 for value in values):
         raise ValueError("dispersion signals must be finite values in [0, 1]")
@@ -85,9 +88,10 @@ def conditional_tail_width(signals: DispersionSignals) -> DispersionDecision:
     regime = 0.35 * signals.regime_break
     dominance = 0.45 * signals.dominance_risk
 
-    directional_signal = _probabilistic_union(
+    directional_signal = _overlap_adjusted_union(
         signals.regime_break,
         signals.dominance_risk,
+        signals.directional_evidence_overlap,
     )
     scenario_conflict = signals.low_event_risk * directional_signal
     conflict_uncertainty = _CONFLICT_UNCERTAINTY_WEIGHT * scenario_conflict
@@ -152,8 +156,11 @@ def conditional_tail_width(signals: DispersionSignals) -> DispersionDecision:
     )
 
 
-def _probabilistic_union(first: float, second: float) -> float:
-    return 1.0 - (1.0 - first) * (1.0 - second)
+def _overlap_adjusted_union(first: float, second: float, overlap: float) -> float:
+    independent_union = 1.0 - (1.0 - first) * (1.0 - second)
+    strongest_signal = max(first, second)
+    incremental_union_gain = independent_union - strongest_signal
+    return independent_union - overlap * incremental_union_gain
 
 
 def _scenario_activation(value: float) -> float:

@@ -116,6 +116,77 @@ def test_cumulative_directional_support_releases_low_event_narrowing_smoothly() 
     assert low.away_width < medium.away_width < high.away_width
 
 
+def test_full_directional_overlap_falls_back_to_strongest_signal_support() -> None:
+    independent = conditional_tail_width(
+        DispersionSignals(
+            regime_break=0.4,
+            dominance_risk=0.4,
+            low_event_risk=0.8,
+            directional_evidence_overlap=0.0,
+        )
+    )
+    overlapping = conditional_tail_width(
+        DispersionSignals(
+            regime_break=0.4,
+            dominance_risk=0.4,
+            low_event_risk=0.8,
+            directional_evidence_overlap=1.0,
+        )
+    )
+
+    assert overlapping.away_width < independent.away_width
+    assert overlapping.home_width > 1.0
+    assert overlapping.dominant_tail_weight > 0.0
+
+
+def test_partial_overlap_discounts_combined_directional_support_smoothly() -> None:
+    independent = conditional_tail_width(
+        DispersionSignals(
+            regime_break=0.5,
+            dominance_risk=0.5,
+            low_event_risk=0.8,
+            directional_evidence_overlap=0.0,
+        )
+    )
+    partial = conditional_tail_width(
+        DispersionSignals(
+            regime_break=0.5,
+            dominance_risk=0.5,
+            low_event_risk=0.8,
+            directional_evidence_overlap=0.5,
+        )
+    )
+    full = conditional_tail_width(
+        DispersionSignals(
+            regime_break=0.5,
+            dominance_risk=0.5,
+            low_event_risk=0.8,
+            directional_evidence_overlap=1.0,
+        )
+    )
+
+    assert full.away_width < partial.away_width < independent.away_width
+
+
+def test_overlap_does_not_change_isolated_directional_evidence() -> None:
+    no_overlap = conditional_tail_width(
+        DispersionSignals(
+            dominance_risk=0.7,
+            low_event_risk=0.8,
+            directional_evidence_overlap=0.0,
+        )
+    )
+    full_overlap = conditional_tail_width(
+        DispersionSignals(
+            dominance_risk=0.7,
+            low_event_risk=0.8,
+            directional_evidence_overlap=1.0,
+        )
+    )
+
+    assert full_overlap == no_overlap
+
+
 def test_conflicting_scenarios_redistribute_disagreement_into_symmetric_width() -> None:
     decision = conditional_tail_width(
         DispersionSignals(low_event_risk=1.0, regime_break=1.0, dominance_risk=1.0)
@@ -144,6 +215,8 @@ def test_conflict_uncertainty_prevents_spurious_away_tail_narrowing() -> None:
         DispersionSignals(low_event_risk=1.01),
         DispersionSignals(dominance_risk=float("nan")),
         DispersionSignals(information_uncertainty=float("inf")),
+        DispersionSignals(directional_evidence_overlap=-0.01),
+        DispersionSignals(directional_evidence_overlap=1.01),
     ),
 )
 def test_invalid_signals_fail_closed(signals: DispersionSignals) -> None:
