@@ -9,7 +9,6 @@ from src.candidate_v2_2_1.dispersion import DispersionSignals, conditional_tail_
 
 def test_neutral_signals_preserve_unit_width_without_tail_weight() -> None:
     decision = conditional_tail_width(DispersionSignals())
-
     assert decision.home_width == 1.0
     assert decision.away_width == 1.0
     assert decision.low_event_weight == 0.0
@@ -18,7 +17,6 @@ def test_neutral_signals_preserve_unit_width_without_tail_weight() -> None:
 
 def test_regime_and_dominance_widen_home_tail_without_mutating_away_equally() -> None:
     decision = conditional_tail_width(DispersionSignals(regime_break=1.0, dominance_risk=1.0))
-
     assert decision.home_width == pytest.approx(1.8)
     assert decision.away_width == pytest.approx(0.95)
     assert decision.dominant_tail_weight == pytest.approx(0.6)
@@ -27,7 +25,6 @@ def test_regime_and_dominance_widen_home_tail_without_mutating_away_equally() ->
 
 def test_low_event_risk_adds_explicit_mass_and_narrows_both_widths() -> None:
     decision = conditional_tail_width(DispersionSignals(low_event_risk=1.0))
-
     assert decision.home_width == pytest.approx(0.85)
     assert decision.away_width == pytest.approx(0.9)
     assert decision.low_event_weight == pytest.approx(0.4)
@@ -36,7 +33,6 @@ def test_low_event_risk_adds_explicit_mass_and_narrows_both_widths() -> None:
 
 def test_information_uncertainty_widens_both_sides_without_scenario_mass() -> None:
     decision = conditional_tail_width(DispersionSignals(information_uncertainty=1.0))
-
     assert decision.home_width == pytest.approx(1.3)
     assert decision.away_width == pytest.approx(1.3)
     assert decision.low_event_weight == 0.0
@@ -52,11 +48,8 @@ def test_information_uncertainty_widens_both_sides_without_scenario_mass() -> No
         DispersionSignals(dominance_risk=0.15),
     ),
 )
-def test_subthreshold_scenario_evidence_cannot_allocate_tail_mass(
-    signals: DispersionSignals,
-) -> None:
+def test_subthreshold_scenario_evidence_cannot_allocate_tail_mass(signals: DispersionSignals) -> None:
     decision = conditional_tail_width(signals)
-
     assert decision.low_event_weight == 0.0
     assert decision.dominant_tail_weight == 0.0
 
@@ -65,7 +58,6 @@ def test_subthreshold_evidence_can_adjust_width_without_creating_scenario_mass()
     decision = conditional_tail_width(
         DispersionSignals(low_event_risk=0.15, information_uncertainty=0.4)
     )
-
     assert decision.home_width != 1.0
     assert decision.away_width > 1.0
     assert decision.low_event_weight == 0.0
@@ -79,16 +71,43 @@ def test_directional_evidence_quadratically_releases_away_low_event_narrowing() 
     strong_directional = conditional_tail_width(
         DispersionSignals(low_event_risk=0.8, dominance_risk=0.8)
     )
-
     assert weak_directional.away_width < 1.0
     assert strong_directional.away_width >= 1.0
+
+
+def test_corroborating_directional_signals_release_width_more_than_either_alone() -> None:
+    regime_only = conditional_tail_width(
+        DispersionSignals(low_event_risk=0.8, regime_break=0.4)
+    )
+    dominance_only = conditional_tail_width(
+        DispersionSignals(low_event_risk=0.8, dominance_risk=0.4)
+    )
+    corroborated = conditional_tail_width(
+        DispersionSignals(low_event_risk=0.8, regime_break=0.4, dominance_risk=0.4)
+    )
+    assert corroborated.home_width > regime_only.home_width
+    assert corroborated.home_width > dominance_only.home_width
+    assert corroborated.away_width > dominance_only.away_width
+    assert corroborated.low_event_weight > 0.0
+    assert corroborated.dominant_tail_weight > 0.0
+
+
+def test_corroborating_directional_evidence_is_bounded_and_monotonic() -> None:
+    moderate = conditional_tail_width(
+        DispersionSignals(low_event_risk=0.8, regime_break=0.4, dominance_risk=0.4)
+    )
+    strong = conditional_tail_width(
+        DispersionSignals(low_event_risk=0.8, regime_break=0.8, dominance_risk=0.8)
+    )
+    assert 0.75 <= moderate.home_width <= 1.8
+    assert 0.75 <= moderate.away_width <= 1.8
+    assert strong.home_width >= moderate.home_width
 
 
 def test_conflicting_scenarios_redistribute_disagreement_into_symmetric_width() -> None:
     decision = conditional_tail_width(
         DispersionSignals(low_event_risk=1.0, regime_break=1.0, dominance_risk=1.0)
     )
-
     assert decision.home_width == pytest.approx(1.5525)
     assert decision.away_width == pytest.approx(1.0975)
     assert decision.low_event_weight + decision.dominant_tail_weight == pytest.approx(0.7)
@@ -99,7 +118,6 @@ def test_conflict_uncertainty_prevents_spurious_away_tail_narrowing() -> None:
         DispersionSignals(low_event_risk=0.8, dominance_risk=0.8)
     )
     directional_only = conditional_tail_width(DispersionSignals(dominance_risk=0.8))
-
     assert directional_only.away_width < 1.0
     assert conflicting.away_width >= 1.0
     assert conflicting.home_width < directional_only.home_width
