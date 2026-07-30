@@ -64,6 +64,11 @@ def conditional_tail_width(signals: DispersionSignals) -> DispersionDecision:
     supported. The away-side narrowing decays quadratically as directional evidence rises,
     preventing low-event suppression from erasing a governed regime-break or dominant-tail
     pathway while retaining a conservative low-event response under weak directionality.
+
+    Regime-break and dominance evidence are combined as bounded corroborating evidence,
+    rather than taking only the stronger signal. This preserves monotonicity, avoids
+    double-counting, and allows two independently governed moderate signals to release
+    low-event narrowing more than either signal could alone.
     """
 
     values = (
@@ -79,7 +84,9 @@ def conditional_tail_width(signals: DispersionSignals) -> DispersionDecision:
     regime = 0.35 * signals.regime_break
     dominance = 0.45 * signals.dominance_risk
 
-    directional_signal = max(signals.regime_break, signals.dominance_risk)
+    directional_signal = 1.0 - (
+        (1.0 - signals.regime_break) * (1.0 - signals.dominance_risk)
+    )
     scenario_conflict = signals.low_event_risk * directional_signal
     conflict_uncertainty = _CONFLICT_UNCERTAINTY_WEIGHT * scenario_conflict
     width_conflict_damping = 1.0 - 0.35 * scenario_conflict
