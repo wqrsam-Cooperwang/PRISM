@@ -61,9 +61,15 @@ def conditional_tail_width(signals: DispersionSignals) -> DispersionDecision:
     a low-event-versus-dominance disagreement cannot make either side spuriously narrow.
 
     Low-event evidence narrows both score distributions when no directional scenario is
-    supported. The away-side narrowing decays quadratically as directional evidence rises,
-    preventing low-event suppression from erasing a governed regime-break or dominant-tail
-    pathway while retaining a conservative low-event response under weak directionality.
+    supported. The away-side narrowing decays quadratically as cumulative directional
+    evidence rises, preventing low-event suppression from erasing a governed regime-break
+    or dominant-tail pathway while retaining a conservative low-event response under weak
+    directionality.
+
+    Regime-break and dominance evidence are combined as a bounded probabilistic union.
+    This preserves either signal in isolation while allowing two independent moderate
+    signals to provide stronger directional support than either one alone. It also avoids
+    the information loss of a max-only aggregator without allowing support above one.
     """
 
     values = (
@@ -79,7 +85,10 @@ def conditional_tail_width(signals: DispersionSignals) -> DispersionDecision:
     regime = 0.35 * signals.regime_break
     dominance = 0.45 * signals.dominance_risk
 
-    directional_signal = max(signals.regime_break, signals.dominance_risk)
+    directional_signal = _probabilistic_union(
+        signals.regime_break,
+        signals.dominance_risk,
+    )
     scenario_conflict = signals.low_event_risk * directional_signal
     conflict_uncertainty = _CONFLICT_UNCERTAINTY_WEIGHT * scenario_conflict
     width_conflict_damping = 1.0 - 0.35 * scenario_conflict
@@ -141,6 +150,10 @@ def conditional_tail_width(signals: DispersionSignals) -> DispersionDecision:
         low_event_weight=low_event_weight,
         dominant_tail_weight=dominant_tail_weight,
     )
+
+
+def _probabilistic_union(first: float, second: float) -> float:
+    return 1.0 - (1.0 - first) * (1.0 - second)
 
 
 def _scenario_activation(value: float) -> float:

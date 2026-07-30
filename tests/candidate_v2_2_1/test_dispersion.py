@@ -84,6 +84,38 @@ def test_directional_evidence_quadratically_releases_away_low_event_narrowing() 
     assert strong_directional.away_width >= 1.0
 
 
+def test_moderate_regime_and_dominance_evidence_combine_without_saturation() -> None:
+    regime_only = conditional_tail_width(
+        DispersionSignals(regime_break=0.4, low_event_risk=0.8)
+    )
+    dominance_only = conditional_tail_width(
+        DispersionSignals(dominance_risk=0.4, low_event_risk=0.8)
+    )
+    combined = conditional_tail_width(
+        DispersionSignals(regime_break=0.4, dominance_risk=0.4, low_event_risk=0.8)
+    )
+
+    assert combined.home_width > regime_only.home_width
+    assert combined.home_width > dominance_only.home_width
+    assert combined.away_width > dominance_only.away_width
+    assert combined.home_width < 1.8
+    assert combined.away_width < 1.8
+
+
+def test_cumulative_directional_support_releases_low_event_narrowing_smoothly() -> None:
+    low = conditional_tail_width(
+        DispersionSignals(regime_break=0.2, dominance_risk=0.2, low_event_risk=0.8)
+    )
+    medium = conditional_tail_width(
+        DispersionSignals(regime_break=0.4, dominance_risk=0.4, low_event_risk=0.8)
+    )
+    high = conditional_tail_width(
+        DispersionSignals(regime_break=0.6, dominance_risk=0.6, low_event_risk=0.8)
+    )
+
+    assert low.away_width < medium.away_width < high.away_width
+
+
 def test_conflicting_scenarios_redistribute_disagreement_into_symmetric_width() -> None:
     decision = conditional_tail_width(
         DispersionSignals(low_event_risk=1.0, regime_break=1.0, dominance_risk=1.0)

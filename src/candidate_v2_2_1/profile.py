@@ -15,7 +15,7 @@ from src.candidate_v2_2_1.dispersion import (
 )
 from src.candidate_v2_2_1.scenario_mix import ScenarioMixture, build_scenario_mixture
 
-CANDIDATE_PROFILE_VERSION = "V2.2.1-research-1"
+CANDIDATE_PROFILE_VERSION = "V2.2.1-research-2"
 
 
 @dataclass(frozen=True)
