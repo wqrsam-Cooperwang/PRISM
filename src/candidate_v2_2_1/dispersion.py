@@ -72,6 +72,11 @@ def conditional_tail_width(signals: DispersionSignals) -> DispersionDecision:
     may derive from shared evidence. Zero overlap retains the independent-evidence union;
     full overlap falls back to the stronger signal. This prevents double counting while
     preserving either signal in isolation.
+
+    Explicit dominant-tail mass applies the same overlap governance to activated,
+    weighted directional evidence. Independent signals retain their additive support;
+    fully overlapping signals retain only the stronger weighted contribution. This keeps
+    width release and scenario mass internally consistent.
     """
 
     values = (
@@ -123,8 +128,10 @@ def conditional_tail_width(signals: DispersionSignals) -> DispersionDecision:
     activated_regime = _scenario_activation(signals.regime_break)
     activated_dominance = _scenario_activation(signals.dominance_risk)
     requested_low_event = 0.40 * activated_low_event
-    requested_dominant_tail = (
-        0.45 * activated_dominance + 0.15 * activated_regime
+    requested_dominant_tail = _overlap_adjusted_additive_support(
+        0.45 * activated_dominance,
+        0.15 * activated_regime,
+        signals.directional_evidence_overlap,
     )
     requested_total = requested_low_event + requested_dominant_tail
     if requested_total == 0.0:
@@ -161,6 +168,16 @@ def _overlap_adjusted_union(first: float, second: float, overlap: float) -> floa
     strongest_signal = max(first, second)
     incremental_union_gain = independent_union - strongest_signal
     return independent_union - overlap * incremental_union_gain
+
+
+def _overlap_adjusted_additive_support(
+    first: float,
+    second: float,
+    overlap: float,
+) -> float:
+    strongest_support = max(first, second)
+    incremental_support = min(first, second)
+    return strongest_support + (1.0 - overlap) * incremental_support
 
 
 def _scenario_activation(value: float) -> float:
