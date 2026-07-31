@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import pytest
+
 from src.candidate_v2_2_1.dispersion import DispersionSignals, conditional_tail_width
 
 
@@ -31,26 +33,64 @@ def test_information_uncertainty_widens_both_distributions_without_scenario_mass
     assert uncertain.dominant_tail_weight == 0.0
 
 
-def test_uncertainty_does_not_bias_governed_scenario_allocation() -> None:
-    low_event = conditional_tail_width(DispersionSignals(low_event_risk=0.7))
-    low_event_uncertain = conditional_tail_width(
-        DispersionSignals(low_event_risk=0.7, information_uncertainty=1.0)
+def test_uncertainty_monotonically_releases_governed_scenario_mass() -> None:
+    uncertainty_levels = (0.0, 0.25, 0.5, 0.75, 1.0)
+    low_event_decisions = [
+        conditional_tail_width(
+            DispersionSignals(low_event_risk=0.7, information_uncertainty=uncertainty)
+        )
+        for uncertainty in uncertainty_levels
+    ]
+    dominant_decisions = [
+        conditional_tail_width(
+            DispersionSignals(
+                regime_break=0.6,
+                dominance_risk=0.8,
+                information_uncertainty=uncertainty,
+            )
+        )
+        for uncertainty in uncertainty_levels
+    ]
+
+    assert all(
+        later.low_event_weight < earlier.low_event_weight
+        for earlier, later in zip(low_event_decisions, low_event_decisions[1:])
     )
-    dominant = conditional_tail_width(
-        DispersionSignals(regime_break=0.6, dominance_risk=0.8)
+    assert all(
+        later.dominant_tail_weight < earlier.dominant_tail_weight
+        for earlier, later in zip(dominant_decisions, dominant_decisions[1:])
     )
-    dominant_uncertain = conditional_tail_width(
+    assert low_event_decisions[-1].low_event_weight == 0.0
+    assert dominant_decisions[-1].dominant_tail_weight == 0.0
+    assert low_event_decisions[-1].home_width > low_event_decisions[0].home_width
+    assert low_event_decisions[-1].away_width > low_event_decisions[0].away_width
+    assert dominant_decisions[-1].home_width > dominant_decisions[0].home_width
+    assert dominant_decisions[-1].away_width > dominant_decisions[0].away_width
+
+
+def test_uncertainty_gate_preserves_relative_tail_allocation_before_fail_closed() -> None:
+    baseline = conditional_tail_width(
+        DispersionSignals(regime_break=0.7, low_event_risk=0.8, dominance_risk=0.9)
+    )
+    uncertain = conditional_tail_width(
         DispersionSignals(
-            regime_break=0.6,
-            dominance_risk=0.8,
-            information_uncertainty=1.0,
+            regime_break=0.7,
+            low_event_risk=0.8,
+            dominance_risk=0.9,
+            information_uncertainty=0.6,
         )
     )
 
-    assert low_event_uncertain.low_event_weight == low_event.low_event_weight
-    assert low_event_uncertain.dominant_tail_weight == low_event.dominant_tail_weight
-    assert dominant_uncertain.low_event_weight == dominant.low_event_weight
-    assert dominant_uncertain.dominant_tail_weight == dominant.dominant_tail_weight
+    baseline_total = baseline.low_event_weight + baseline.dominant_tail_weight
+    uncertain_total = uncertain.low_event_weight + uncertain.dominant_tail_weight
+
+    assert uncertain_total < baseline_total
+    assert uncertain.low_event_weight / uncertain_total == pytest.approx(
+        baseline.low_event_weight / baseline_total
+    )
+    assert uncertain.dominant_tail_weight / uncertain_total == pytest.approx(
+        baseline.dominant_tail_weight / baseline_total
+    )
 
 
 def test_dominance_signal_is_asymmetric_by_design() -> None:
