@@ -67,11 +67,13 @@ def conditional_tail_width(signals: DispersionSignals) -> DispersionDecision:
     or dominant-tail pathway while retaining a conservative low-event response under weak
     directionality.
 
-    Regime-break and dominance evidence are combined as a bounded probabilistic union.
-    A governed overlap signal discounts only the incremental union gain when both inputs
-    may derive from shared evidence. Zero overlap retains the independent-evidence union;
-    full overlap falls back to the stronger signal. This prevents double counting while
-    preserving either signal in isolation.
+    Regime-break and dominance evidence are combined as a bounded probabilistic union for
+    width and conflict control. A governed overlap signal discounts only the incremental
+    union gain when both inputs may derive from shared evidence. The same overlap control
+    also discounts the weaker activated contribution when explicit dominant-tail mass is
+    allocated. Zero overlap retains independent evidence accumulation; full overlap falls
+    back to the stronger contribution. This prevents double counting across both width and
+    scenario-mass paths while preserving either signal in isolation.
     """
 
     values = (
@@ -123,8 +125,10 @@ def conditional_tail_width(signals: DispersionSignals) -> DispersionDecision:
     activated_regime = _scenario_activation(signals.regime_break)
     activated_dominance = _scenario_activation(signals.dominance_risk)
     requested_low_event = 0.40 * activated_low_event
-    requested_dominant_tail = (
-        0.45 * activated_dominance + 0.15 * activated_regime
+    requested_dominant_tail = _overlap_adjusted_additive_support(
+        0.45 * activated_dominance,
+        0.15 * activated_regime,
+        signals.directional_evidence_overlap,
     )
     requested_total = requested_low_event + requested_dominant_tail
     if requested_total == 0.0:
@@ -161,6 +165,17 @@ def _overlap_adjusted_union(first: float, second: float, overlap: float) -> floa
     strongest_signal = max(first, second)
     incremental_union_gain = independent_union - strongest_signal
     return independent_union - overlap * incremental_union_gain
+
+
+def _overlap_adjusted_additive_support(
+    first: float,
+    second: float,
+    overlap: float,
+) -> float:
+    independent_support = first + second
+    strongest_support = max(first, second)
+    incremental_support = independent_support - strongest_support
+    return independent_support - overlap * incremental_support
 
 
 def _scenario_activation(value: float) -> float:
