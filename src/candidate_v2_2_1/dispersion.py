@@ -45,7 +45,10 @@ def conditional_tail_width(signals: DispersionSignals) -> DispersionDecision:
 
     Information uncertainty is deliberately non-directional: it widens both score
     distributions but cannot create low-event or dominant-tail scenario mass by itself.
-    Scenario weights require scenario-specific governed evidence.
+    Explicit scenario allocation is confidence-gated by the complement of information
+    uncertainty. As uncertainty rises, activated scenario mass returns smoothly to the
+    baseline scenario while width remains widened. Complete uncertainty therefore fails
+    closed to zero explicit tail allocation rather than asserting a brittle scenario.
 
     Sub-threshold scenario evidence may still adjust distribution width, but it cannot
     allocate explicit scenario mass. Above the activation floor, smoothstep activation
@@ -140,9 +143,12 @@ def conditional_tail_width(signals: DispersionSignals) -> DispersionDecision:
 
     low_event_damping = 1.0 - 0.35 * scenario_conflict * dominant_tail_share
     dominant_tail_damping = 1.0 - 0.35 * scenario_conflict * low_event_share
-    low_event_weight = _bounded_weight(requested_low_event * low_event_damping)
+    scenario_confidence = 1.0 - signals.information_uncertainty
+    low_event_weight = _bounded_weight(
+        requested_low_event * low_event_damping * scenario_confidence
+    )
     dominant_tail_weight = _bounded_weight(
-        requested_dominant_tail * dominant_tail_damping
+        requested_dominant_tail * dominant_tail_damping * scenario_confidence
     )
 
     joint_tail_budget = 1.0 - 0.30 * scenario_conflict
